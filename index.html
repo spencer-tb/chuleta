@@ -952,8 +952,12 @@ let lastSpoken = "";
 let player = null;
 
 // Per-voice playback speed (pitch preserved). Slower Spanish is a listening
-// scaffold in its own right — speed back up as decoding improves.
-const RATE_STEPS = [1, 0.85, 0.7, 1.15];
+// scaffold in its own right — speed back up as decoding improves. English is
+// just the prompt, so it goes all the way to 2x for faster reps.
+const RATE_STEPS = {
+  es: [1, 0.85, 0.7, 1.15],
+  en: [1, 1.25, 1.5, 1.75, 2, 0.7, 0.85],
+};
 let rates = {
   es: parseFloat(localStorage.getItem("chuleta-rate-es")) || 1,
   en: parseFloat(localStorage.getItem("chuleta-rate-en")) || 1,
@@ -1258,8 +1262,9 @@ $("textmode").addEventListener("click", () => {
 
 ["es", "en"].forEach(lang => {
   $(lang === "es" ? "rateEs" : "rateEn").addEventListener("click", () => {
-    const i = RATE_STEPS.indexOf(rates[lang]);
-    rates[lang] = RATE_STEPS[(i + 1) % RATE_STEPS.length];
+    const steps = RATE_STEPS[lang];
+    const i = steps.indexOf(rates[lang]);
+    rates[lang] = steps[(i + 1) % steps.length];
     localStorage.setItem("chuleta-rate-" + lang, rates[lang]);
     if (player && player.chLang === lang) player.playbackRate = rates[lang];
     render();
