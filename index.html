@@ -1027,9 +1027,14 @@ function playClip(card, lang, rateOverride) {
   a.onerror = fallback; // clip missing (e.g. card added but audio not regenerated)
   player = a;
   a.play().catch(err => {
-    // NotAllowedError = autoplay blocked before first tap — stay silent;
-    // anything else means the file didn't load, so fall back to browser TTS.
-    if (err && err.name !== "NotAllowedError" && err.name !== "AbortError") fallback();
+    // NotAllowedError = autoplay blocked before the session's first tap.
+    // Never leave a 🎧 card blank AND silent: reveal the prompt text (it's
+    // never the answer). Anything else = file didn't load: browser TTS.
+    if (err && err.name === "NotAllowedError") {
+      if (!flipped && mode === "study" && !peeked) { peeked = true; render(); }
+    } else if (err && err.name !== "AbortError") {
+      fallback();
+    }
   });
 }
 
@@ -1251,6 +1256,22 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+// Safari won't grant the mic (or start audio) outside a user gesture. When
+// hands-free mode is on from a previous session, grab both on the first tap
+// or keypress so the auto flow has a warm stream to reuse.
+if (autoMic) {
+  const warmUp = () => {
+    getMicStream().catch(() => {});
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      beepCtx ||= new AC();
+      beepCtx.resume();
+    } catch {}
+  };
+  document.addEventListener("pointerdown", warmUp, { once: true });
+  document.addEventListener("keydown", warmUp, { once: true });
+}
+
 // Short "start speaking now" cue. Recording starts just after it so the tone
 // never lands in the scored audio.
 let beepCtx = null;
@@ -1273,6 +1294,7 @@ function beep() {
 
 async function startMic(card, auto) {
   if (micState !== "idle") return;
+  micState = "busy"; // arming — blocks a concurrent start during the beep gap
   try {
     const stream = await getMicStream();
     micChunks = [];
@@ -1293,8 +1315,11 @@ async function startMic(card, auto) {
     micTimer = setTimeout(() => { if (micState === "rec") mediaRec.stop(); }, 12000);
     if (auto) startVad(stream);
     renderMic();
-  } catch {
-    $("micStatus").textContent = "microphone blocked — allow it in site settings";
+  } catch (e) {
+    micState = "idle";
+    renderMic();
+    $("micStatus").textContent =
+      "mic didn't start (" + ((e && e.name) || "error") + ") — tap 🎤 to retry";
   }
 }
 
