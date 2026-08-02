@@ -260,6 +260,10 @@
     font-family: ui-monospace, Menlo, monospace;
     font-size: 0.72rem;
   }
+  /* Hotkey hints mean nothing on touch screens. */
+  @media (hover: none) and (pointer: coarse) {
+    footer { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -1222,10 +1226,16 @@ function ctcPhones(logits, id2tok, pad) {
 async function micToggle() {
   const card = currentCard();
   if (micState === "rec") { clearTimeout(micTimer); mediaRec.stop(); return; }
-  if (micState !== "idle") return;
-  if (flipped) {
-    // On the back the button replays the current ladder step.
-    if (ladder && !ladder.done && card && ladder.hash === fnv1a(card.es)) ladderPlayAndListen();
+  if (micState !== "idle" || !card) return;
+  if (flipped || activeDir === "es-en") {
+    // Anywhere the Spanish is visible, the button starts (or replays) the
+    // repeat ladder — this is also mobile's first-time entry point.
+    if (!repeatEligible(card)) return;
+    getMicStream().catch(() => {});   // grab permission inside the tap gesture
+    const hash = fnv1a(card.es);
+    if (!ladder || ladder.hash !== hash)
+      ladder = { hash, step: 0, attempts: 0, fullTries: 0, cleared: false, done: false };
+    if (!ladder.done) ladderPlayAndListen();
     return;
   }
   if (!canScore(card)) return;
@@ -1361,11 +1371,14 @@ const LADDER_PASS = 0.85;
 const LADDER_TRIES = 3;   // misses allowed per speed before moving on anyway
 let ladder = null;        // { hash, step, attempts, done }
 
-function canRepeat(card) {
-  return autoMic && !!card && mode === "study" &&
+function repeatEligible(card) {
+  return !!card && mode === "study" &&
     !!(PHONEMES && PHONEMES[fnv1a(card.es)]) &&
     typeof navigator !== "undefined" && !!navigator.mediaDevices;
 }
+// Hands-free flows (auto-ladder, grade lock) engage only after the first
+// successful score on THIS device proves mic + model work here.
+function canRepeat(card) { return autoMic && repeatEligible(card); }
 
 // The ladder runs wherever the Spanish is the thing being practised: the back
 // of any card after reveal, and the FRONT of ES→EN cards (Spanish visible —
@@ -1693,9 +1706,11 @@ function render() {
 
 function renderMic() {
   const card = currentCard();
-  const ladderOn = ladder && !ladder.done && card && ladder.hash === fnv1a(card.es) &&
-    (flipped || activeDir === "es-en");
-  const show = mode === "study" && (ladderOn || (!flipped && canScore(card)));
+  const spanishSide = flipped || activeDir === "es-en";
+  const ladderOn = ladder && !ladder.done && card && ladder.hash === fnv1a(card.es) && spanishSide;
+  const show = mode === "study" && !!card && (ladderOn ||
+    (!flipped && canScore(card)) ||
+    (spanishSide && !autoMic && repeatEligible(card)));
   $("microw").classList.toggle("hidden", !show);
   if (!show) return;
   const b = $("mic");
