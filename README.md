@@ -25,8 +25,22 @@ missing (new card, audio not regenerated yet) the browser's TTS fills in.
 **Scaffold fading** (the 🎓 toggle): in **auto** mode, once a card has 2
 successful reviews its prompt becomes **audio-only** (🎧) — you must understand
 the spoken Spanish with no text to lean on, which is what real conversation
-demands. `t` / *mostrar texto* peeks when your ears fail you. **📖 texto** keeps
+demands. `t` / *show text* peeks when your ears fail you. **📖 text** keeps
 text always; **🎧 audio** goes audio-only immediately.
+
+**Speak it back** (🎤 / `m`, on EN→ES cards): say the Spanish answer before
+flipping. A phoneme-recognition model (wav2vec2 espeak) runs **in the browser**
+— no accounts, no cloud, your voice never leaves the device — and the answer
+appears color-coded word by word (green / amber / red‿wavy); tap a word to see
+exactly which sounds weren't heard, then replay the native clip and try again.
+First use downloads the model once (~170MB on phones, cached offline after).
+Spanish allophones (b/β, d/ð, g/ɣ, yeísmo) count as correct; ɾ vs rr and the
+Castilian c/z stay strict — those are the point. Reference phonemes come from
+`tools/gen_phonemes.py` (espeak-ng). Treat it as a coach, not an examiner:
+clear errors are caught reliably, subtle vowel shading is not.
+
+**Speed dials**: per-voice playback rate (pitch preserved) — Spanish down to
+0.7× as a listening scaffold, English up to 2× for faster reps.
 
 The direction button cycles **Mixto 🎲** (default: each card randomly rolls 75%
 EN → ES, 25% ES → EN) → fixed EN → ES → fixed ES → EN. Producing Spanish from English
@@ -67,9 +81,6 @@ localStorage — there's no sync between devices).
 
 ## Roadmap
 
-- **Pronunciation scoring** (next): speak the Spanish answer into the mic, Azure
-  Pronunciation Assessment scores it — per-word color coding, tap a word for the
-  phoneme-level breakdown, all es-ES.
 - **Conversation mode**: questions only, answer out loud like a mock lesson.
 - **More cards**: the fastest route to conversation is coverage — ~1,000 highest-
   frequency words ≈ 80% of everyday speech. Grow the deck along a frequency list.
@@ -86,5 +97,6 @@ Then regenerate audio for the new cards only (needs the ElevenLabs key in
 `~/.config/chuleta/elevenlabs.key`; existing clips are skipped):
 
 ```sh
-python3 tools/gen_audio.py
+python3 tools/gen_audio.py      # new clips only (needs the ElevenLabs key)
+python3 tools/gen_phonemes.py   # scoring references (needs espeak-ng)
 ```

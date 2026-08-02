@@ -186,6 +186,26 @@
   }
   .face .peek[hidden] { display: none; }
 
+  .face .score { font-size: 0.8rem; color: var(--ink-soft); margin: 0; max-width: 52ch; }
+  .w-good { color: var(--good); }
+  .w-mid { color: var(--marigold); }
+  .w-bad { color: var(--bad); text-decoration: underline wavy; text-underline-offset: 0.2em; }
+
+  .microw { display: flex; gap: 0.75rem; justify-content: center; align-items: center; min-height: 2.6rem; }
+  .microw.hidden { visibility: hidden; }
+  .microw button {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.5rem 1.4rem;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .microw button.rec { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
+  .micstatus { font-size: 0.75rem; color: var(--ink-soft); }
+
   .judge { display: flex; gap: 0.75rem; justify-content: center; min-height: 3rem; }
   .judge button {
     font: inherit;
@@ -276,11 +296,17 @@
         <button class="say" id="sayBack" title="Listen (e)">🔊</button>
         <span class="eyebrow" id="backLabel"></span>
         <p class="phrase" id="backText"></p>
+        <p class="score" id="backScore"></p>
         <p class="note" id="backNote"></p>
         <p class="gloss" id="backGloss"></p>
         <span class="hint" id="backHint"></span>
       </div>
     </div>
+  </div>
+
+  <div class="microw hidden" id="microw">
+    <button id="mic">🎤 say it (m)</button>
+    <span class="micstatus" id="micStatus"></span>
   </div>
 
   <div class="judge hidden" id="judge">
@@ -296,7 +322,7 @@
 
   <footer>
     <kbd>space</kbd> flip &nbsp; <kbd>1</kbd> correct &nbsp; <kbd>2</kbd> wrong &nbsp;
-    <kbd>e</kbd> listen &nbsp; <kbd>t</kbd> show text &nbsp; <kbd>←</kbd><kbd>→</kbd> browse &nbsp; <kbd>s</kbd> shuffle
+    <kbd>e</kbd> listen &nbsp; <kbd>m</kbd> say it &nbsp; <kbd>t</kbd> show text &nbsp; <kbd>←</kbd><kbd>→</kbd> browse &nbsp; <kbd>s</kbd> shuffle
   </footer>
 </main>
 
@@ -1021,6 +1047,191 @@ function maybeAutoPlay(card) {
   playClip(card, visibleLang());
 }
 
+// ---- Pronunciation scoring (on-device, no accounts) ----
+// A phoneme-recognition model (wav2vec2 espeak) runs in the browser via
+// transformers.js. Reference phones per card live in phonemes.json (from
+// tools/gen_phonemes.py, same espeak inventory). Your recording is decoded to
+// the phones you actually produced and aligned against the reference — all
+// local, the audio never leaves the device. First use downloads the model
+// once (~170MB on phones / ~330MB on desktop), then it's cached.
+const SCORER_REPO = "onnx-community/wav2vec2-lv-60-espeak-cv-ft-ONNX";
+const TRANSFORMERS_CDN = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0";
+let PHONEMES = null;
+let scorerPromise = null;
+let micState = "idle";        // idle | rec | busy
+let micProgress = 0;
+let mediaRec = null, micChunks = [], micTimer = null;
+let lastScore = null;         // { hash, words: [{w, ph, ok, score}], overall }
+
+if (typeof fetch !== "undefined") {
+  fetch("phonemes.json").then(r => r.json())
+    .then(j => { PHONEMES = j; render(); })
+    .catch(() => {});
+}
+
+// Spanish allophones (b/β/v, d/ð, g/ɣ — native speech alternates these) and
+// model hair-splitting vowels count as matches. ɾ vs r and θ vs s stay
+// distinct: those contrasts are learning targets.
+const PH_EQUIV = [["b","β","v"],["d","ð"],["g","ɡ","ɣ"],["e","ɛ"],["o","ɔ"],
+                  ["a","ɐ","ä"],["ʝ","j","ʎ"],["s","z"],["i","ɪ"],["u","ʊ"]];
+const phClass = {};
+PH_EQUIV.forEach((g, k) => g.forEach(p => phClass[p] = k));
+function phSame(a, b) {
+  return a === b || (phClass[a] !== undefined && phClass[a] === phClass[b]);
+}
+
+// Needleman-Wunsch alignment; returns matched flag per reference position.
+function alignPhones(ref, hyp) {
+  const R = ref.length, H = hyp.length;
+  const D = Array.from({ length: R + 1 }, () => new Array(H + 1).fill(0));
+  for (let i = 0; i <= R; i++) D[i][0] = i;
+  for (let j = 0; j <= H; j++) D[0][j] = j;
+  for (let i = 1; i <= R; i++)
+    for (let j = 1; j <= H; j++)
+      D[i][j] = Math.min(
+        D[i - 1][j - 1] + (phSame(ref[i - 1], hyp[j - 1]) ? 0 : 1),
+        D[i - 1][j] + 1, D[i][j - 1] + 1);
+  const matched = new Array(R).fill(false);
+  let i = R, j = H;
+  while (i > 0 && j > 0) {
+    if (D[i][j] === D[i - 1][j - 1] + (phSame(ref[i - 1], hyp[j - 1]) ? 0 : 1)) {
+      if (phSame(ref[i - 1], hyp[j - 1])) matched[i - 1] = true;
+      i--; j--;
+    } else if (D[i][j] === D[i - 1][j] + 1) i--;
+    else j--;
+  }
+  return matched;
+}
+
+function scoreWords(refWords, hyp) {
+  const flat = refWords.flat();
+  const matched = alignPhones(flat, hyp);
+  let pos = 0, hits = 0;
+  const words = refWords.map(ph => {
+    const ok = matched.slice(pos, pos + ph.length);
+    let score = ph.length ? ok.filter(Boolean).length / ph.length : 1;
+    // Short function words get swallowed in natural linked speech ("cuándo‿es")
+    // — never fail them outright if anything matched.
+    if (ph.length <= 2 && ok.some(Boolean)) score = Math.max(score, 0.8);
+    hits += ok.filter(Boolean).length;
+    pos += ph.length;
+    return { ph, ok, score };
+  });
+  return { words, overall: flat.length ? hits / flat.length : 0 };
+}
+
+function canScore(card) {
+  return mode === "study" && activeDir === "en-es" && !!card &&
+    !!(PHONEMES && PHONEMES[fnv1a(card.es)]) &&
+    typeof navigator !== "undefined" && !!navigator.mediaDevices;
+}
+
+function loadScorer() {
+  if (!scorerPromise) scorerPromise = (async () => {
+    const mobile = /iPhone|iPad|Android/i.test(navigator.userAgent || "");
+    const T = await import(TRANSFORMERS_CDN);
+    const model = await T.AutoModel.from_pretrained(SCORER_REPO, {
+      dtype: mobile ? "q4" : "q8",
+      progress_callback: p => {
+        if (p.status === "progress" && p.file && p.file.endsWith(".onnx")) {
+          micProgress = Math.round(p.progress || 0);
+          renderMic();
+        }
+      },
+    });
+    const vocab = await (await fetch(
+      "https://huggingface.co/" + SCORER_REPO + "/resolve/main/vocab.json")).json();
+    const id2tok = Object.fromEntries(Object.entries(vocab).map(([t, i]) => [i, t]));
+    return { T, model, id2tok, pad: vocab["<pad>"] ?? 0 };
+  })().catch(err => { scorerPromise = null; throw err; });
+  return scorerPromise;
+}
+
+async function blobToPCM16k(blob) {
+  const buf = await blob.arrayBuffer();
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ac = new AC();
+  const decoded = await ac.decodeAudioData(buf);
+  ac.close();
+  const off = new OfflineAudioContext(1, Math.ceil(decoded.duration * 16000), 16000);
+  const src = off.createBufferSource();
+  src.buffer = decoded;
+  src.connect(off.destination);
+  src.start();
+  const rendered = await off.startRendering();
+  const f = Float32Array.from(rendered.getChannelData(0));
+  let mean = 0;
+  for (const x of f) mean += x;
+  mean /= f.length;
+  let v = 0;
+  for (const x of f) v += (f.length ? (x - mean) ** 2 : 0);
+  const std = Math.sqrt(v / f.length) + 1e-7;
+  for (let k = 0; k < f.length; k++) f[k] = (f[k] - mean) / std;
+  return f;
+}
+
+function ctcPhones(logits, id2tok, pad) {
+  const [T_, V] = logits.dims.slice(1);
+  const d = logits.data;
+  const out = [];
+  let prev = -1;
+  for (let t = 0; t < T_; t++) {
+    let best = 0, bi = -Infinity;
+    for (let v = 0; v < V; v++) {
+      const x = d[t * V + v];
+      if (x > bi) { bi = x; best = v; }
+    }
+    if (best !== prev && best !== pad) {
+      const tok = id2tok[best];
+      if (tok && tok !== "|") out.push(tok);
+    }
+    prev = best;
+  }
+  return out;
+}
+
+async function micToggle() {
+  const card = currentCard();
+  if (!canScore(card) || flipped) return;
+  if (micState === "rec") { clearTimeout(micTimer); mediaRec.stop(); return; }
+  if (micState !== "idle") return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    micChunks = [];
+    mediaRec = new MediaRecorder(stream);
+    mediaRec.ondataavailable = e => micChunks.push(e.data);
+    mediaRec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      scoreRecording(card);
+    };
+    mediaRec.start();
+    micState = "rec";
+    micTimer = setTimeout(() => { if (micState === "rec") mediaRec.stop(); }, 12000);
+    renderMic();
+  } catch {
+    $("micStatus").textContent = "microphone blocked — allow it in site settings";
+  }
+}
+
+async function scoreRecording(card) {
+  micState = "busy";
+  renderMic();
+  try {
+    const ref = PHONEMES[fnv1a(card.es)];
+    const s = await loadScorer();
+    const f = await blobToPCM16k(new Blob(micChunks));
+    const out = await s.model({ input_values: new s.T.Tensor("float32", f, [1, f.length]) });
+    const hyp = ctcPhones(out.logits, s.id2tok, s.pad);
+    const result = scoreWords(ref.p, hyp);
+    result.words.forEach((x, i) => x.w = ref.w[i]);
+    lastScore = { hash: fnv1a(card.es), words: result.words, overall: result.overall };
+  } catch (e) {
+    lastScore = { hash: fnv1a(card.es), error: true };
+  }
+  micState = "idle";
+  if (!flipped) flip(); else render();
+}
+
 // Study session
 let queue = [];               // card ids: due reviews first, then new cards
 let sessionTotal = 0;
@@ -1110,6 +1321,7 @@ function grade(correct) {
   if (isNew) { rolloverNewLog(); newLog.count += 1; saveNewLog(); }
   flipped = false;
   peeked = false;
+  lastScore = null;
   rollDir();
   render();
 }
@@ -1162,12 +1374,14 @@ function render() {
     $("frontCat").textContent = "";
     $("frontHint").textContent = mode === "study" ? nextDueInfo() : "";
     $("backText").textContent = "";
+    $("backScore").textContent = "";
     $("backNote").textContent = "";
     $("backGloss").innerHTML = "";
     $("backHint").textContent = "";
     $("sayFront").hidden = true;
     $("sayBack").hidden = true;
     $("peek").hidden = true;
+    $("microw").classList.add("hidden");
     cardEl.classList.remove("flipped");
     return;
   }
@@ -1176,7 +1390,18 @@ function render() {
   const earOnly = audioOnlyNow(card);
   $("frontText").textContent = earOnly ? "🎧" : (activeDir === "es-en" ? card.es : card.en);
   $("peek").hidden = !earOnly;
-  $("backText").textContent = activeDir === "es-en" ? card.en : card.es;
+  const sc = lastScore && lastScore.hash === fnv1a(card.es) && activeDir === "en-es" ? lastScore : null;
+  if (sc && !sc.error) {
+    $("backText").innerHTML = sc.words.map((x, i) =>
+      '<span class="' + (x.score >= 0.8 ? "w-good" : x.score >= 0.55 ? "w-mid" : "w-bad") +
+      '" data-wi="' + i + '">' + x.w + "</span>").join(" ");
+    $("backScore").textContent =
+      "pronunciation " + Math.round(sc.overall * 100) + "% · tap a word for detail";
+  } else {
+    $("backText").textContent = activeDir === "es-en" ? card.en : card.es;
+    $("backScore").textContent = sc && sc.error
+      ? "couldn't score that — try again, closer to the mic" : "";
+  }
   $("backNote").textContent = card.note || "";
   $("backGloss").innerHTML = (GLOSS[card.es] || "").split(" · ").filter(Boolean)
     .map(pair => {
@@ -1196,6 +1421,23 @@ function render() {
   $("sayBack").hidden = false;
   cardEl.classList.toggle("flipped", flipped);
   maybeAutoPlay(card);
+  renderMic();
+}
+
+function renderMic() {
+  const card = currentCard();
+  const show = canScore(card) && !flipped && mode === "study";
+  $("microw").classList.toggle("hidden", !show);
+  if (!show) return;
+  const b = $("mic");
+  b.classList.toggle("rec", micState === "rec");
+  b.textContent = micState === "rec" ? "⏹ stop (m)"
+    : micState === "busy" ? (micProgress > 0 && micProgress < 100
+        ? "↓ model " + micProgress + "%" : "… scoring")
+    : "🎤 say it (m)";
+  $("micStatus").textContent =
+    micState === "busy" && micProgress > 0 && micProgress < 100
+      ? "one-time download" : "";
 }
 
 function flip() {
@@ -1288,6 +1530,18 @@ $("sayBack").addEventListener("click", e => {
   if (card) playClip(card, answerLang());
 });
 
+$("mic").addEventListener("click", micToggle);
+
+$("backText").addEventListener("click", e => {
+  const wi = e.target && e.target.dataset ? e.target.dataset.wi : undefined;
+  if (wi === undefined || !lastScore || !lastScore.words) return;
+  e.stopPropagation();
+  const x = lastScore.words[+wi];
+  $("backScore").textContent = x.w + ":  " +
+    x.ph.map((p, k) => (x.ok[k] ? p : "[" + p + "]")).join(" ") +
+    "   — [brackets] = not heard";
+});
+
 $("reset").addEventListener("click", () => {
   if (!confirm("Delete all review progress?")) return;
   srs = {};
@@ -1319,6 +1573,7 @@ document.addEventListener("keydown", e => {
   else if (e.key === "t") {
     if (currentCard() && audioOnlyNow(currentCard())) { peeked = true; render(); }
   }
+  else if (e.key === "m") micToggle();
 });
 
 setMode("study");
