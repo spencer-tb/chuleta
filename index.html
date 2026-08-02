@@ -224,40 +224,9 @@
   .microw button.rec { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
   .micstatus { font-size: 0.75rem; color: var(--ink-soft); }
 
-  .vocab { display: flex; flex-direction: column; gap: 0.9rem; }
-  .vocab[hidden] { display: none; }
-  .vocab-head { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
+  .vocab-head { font-size: 0.88rem; color: var(--ink-soft); }
   .vocab-head b { color: var(--ink); }
-  .vocab input {
-    font: inherit;
-    padding: 0.55rem 0.9rem;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    color: var(--ink);
-  }
-  .vrow {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.4rem 0.2rem;
-    border-bottom: 1px solid var(--line);
-    font-size: 0.95rem;
-  }
-  .vrow .rank { color: var(--ink-soft); font-size: 0.72rem; min-width: 2.2rem;
-                font-variant-numeric: tabular-nums; }
-  .vrow .w { font-weight: 600; min-width: 7.5rem; }
-  .vrow .g { color: var(--ink-soft); flex: 1; }
-  .vrow button {
-    font: inherit;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.2rem 0.4rem;
-  }
-  .vrow .know { font-size: 0.9rem; opacity: 0.45; }
-  .vrow.known .know { opacity: 1; }
-  .vrow.known .w { color: var(--good); }
+  .vocab-head[hidden] { display: none; }
 
   .judge { display: flex; gap: 0.75rem; justify-content: center; min-height: 3rem; }
   .judge button {
@@ -376,13 +345,11 @@
     <span class="micstatus" id="micStatus"></span>
   </div>
 
-  <section class="vocab" id="vocabPanel" hidden>
-    <p class="vocab-head">The highest-frequency spoken words — this list covers
-      <b>≈80%</b> of everyday Spanish. Mark what you know:
-      <b id="vocabKnown">0</b> known · ≈<b id="vocabCov">0%</b> of speech</p>
-    <input type="search" id="vocabSearch" placeholder="search word or meaning…">
-    <div id="vocabList"></div>
-  </section>
+  <div class="vocab-head" id="vocabPanel" hidden>
+    The top spoken words (≈80% of everyday Spanish) as flashcards, most
+    frequent first — <b id="vocabKnown">0</b> known ·
+    ≈<b id="vocabCov">0%</b> of speech understood
+  </div>
 
   <div class="judge hidden" id="judge">
     <button class="yes" id="correct">Correct ✓</button>
@@ -1142,6 +1109,507 @@ const DECK = [
   { es: "Está lloviendo", en: "It's raining", cat: "Everyday" },
   { es: "¿Quedamos en la plaza?", en: "Shall we meet in the square?", cat: "Everyday" },
   { es: "Te espero fuera", en: "I'll wait for you outside", cat: "Everyday" },
+  // Top words — phrases for the highest-frequency vocabulary
+  { es: "Le di las gracias", en: "I thanked him", cat: "Top words",
+    note: "le = him / her (obj.) · top word #36" },
+  { es: "Sólo quiero un café", en: "I just want a coffee", cat: "Top words",
+    note: "sólo = only / just · top word #61" },
+  { es: "Sin azúcar, por favor", en: "Without sugar, please", cat: "Top words",
+    note: "sin = without · top word #81" },
+  { es: "Perdone, señor", en: "Excuse me, sir", cat: "Top words",
+    note: "señor = sir / Mr. · top word #83" },
+  { es: "Uno para mí, porfa", en: "One for me, pls", cat: "Top words",
+    note: "uno = one · top word #89" },
+  { es: "Es bonito, ¿verdad?", en: "It's nice, right?", cat: "Top words",
+    note: "verdad = truth / right? · top word #90" },
+  { es: "¿Quién es?", en: "Who is it?", cat: "Top words",
+    note: "quién = who · top word #92" },
+  { es: "Todas mis amigas vienen", en: "All my friends are coming", cat: "Top words",
+    note: "todas = all (f pl) · top word #95" },
+  { es: "¡Hombre, cuánto tiempo!", en: "Hey man, long time no see!", cat: "Top words",
+    note: "hombre = man · top word #101" },
+  { es: "Hola, ¿qué tal?", en: "Hi, how's it going?", cat: "Top words",
+    note: "hola = hello · top word #103" },
+  { es: "No hay nadie en casa", en: "There's nobody home", cat: "Top words",
+    note: "nadie = nobody · top word #110" },
+  { es: "Este es nuestro piso", en: "This is our flat", cat: "Top words",
+    note: "nuestro = our · top word #113" },
+  { es: "Vas a tener suerte", en: "You're going to be lucky", cat: "Top words",
+    note: "tener = to have · top word #122" },
+  { es: "Quiero saber más", en: "I want to know more", cat: "Top words",
+    note: "saber = to know (facts) · top word #125" },
+  { es: "Querer es poder", en: "Where there's a will there's a way", cat: "Top words",
+    note: "querer = to want / love · top word #126" },
+  { es: "¿Se puede?", en: "May I? (entering)", cat: "Top words",
+    note: "poder = to be able to · top word #127" },
+  { es: "Vamos a dar una vuelta", en: "Let's go for a stroll", cat: "Top words",
+    note: "dar = to give · top word #128" },
+  { es: "Debe de ser caro", en: "It must be expensive", cat: "Top words",
+    note: "deber = must / to owe · top word #130" },
+  { es: "¿Dónde lo pongo?", en: "Where do I put it?", cat: "Top words",
+    note: "poner = to put · top word #131" },
+  { es: "¿Qué te parece?", en: "What do you think (of it)?", cat: "Top words",
+    note: "parecer = to seem · top word #132" },
+  { es: "Déjalo aquí", en: "Leave it here", cat: "Top words",
+    note: "dejar = to leave / let · top word #135" },
+  { es: "Sigue todo recto", en: "Keep going straight", cat: "Top words",
+    note: "seguir = to follow / continue · top word #136" },
+  { es: "Es difícil encontrar piso", en: "It's hard to find a flat", cat: "Top words",
+    note: "encontrar = to find · top word #137" },
+  { es: "Luego te llamo", en: "I'll call you later", cat: "Top words",
+    note: "llamar = to call · top word #138" },
+  { es: "¿Vienes con nosotros?", en: "Are you coming with us?", cat: "Top words",
+    note: "venir = to come · top word #139" },
+  { es: "Déjame pensarlo", en: "Let me think about it", cat: "Top words",
+    note: "pensar = to think · top word #140" },
+  { es: "Salgo de trabajar a las seis", en: "I get off work at six", cat: "Top words",
+    note: "salir = to go out / leave · top word #141" },
+  { es: "Vuelvo en un momento", en: "I'll be back in a moment", cat: "Top words",
+    note: "volver = to return · top word #142" },
+  { es: "¿Tomamos algo?", en: "Shall we get a drink?", cat: "Top words",
+    note: "tomar = to take / drink · top word #143" },
+  { es: "Lo siento, de verdad", en: "I'm sorry, really", cat: "Top words",
+    note: "sentir = to feel · top word #145" },
+  { es: "Mira qué bonito", en: "Look how pretty", cat: "Top words",
+    note: "mirar = to look at · top word #146" },
+  { es: "Cuéntame más", en: "Tell me more", cat: "Top words",
+    note: "contar = to tell / count · top word #147" },
+  { es: "¿Cuándo empezamos?", en: "When do we start?", cat: "Top words",
+    note: "empezar = to begin · top word #148" },
+  { es: "Espera un segundo", en: "Wait a second", cat: "Top words",
+    note: "esperar = to wait / hope · top word #149" },
+  { es: "¿Qué buscas?", en: "What are you looking for?", cat: "Top words",
+    note: "buscar = to look for · top word #150" },
+  { es: "Ese sitio ya no existe", en: "That place doesn't exist anymore", cat: "Top words",
+    note: "existir = to exist · top word #151" },
+  { es: "¿Entramos?", en: "Shall we go in?", cat: "Top words",
+    note: "entrar = to enter · top word #152" },
+  { es: "Vas a perder el tren", en: "You're going to miss the train", cat: "Top words",
+    note: "perder = to lose · top word #155" },
+  { es: "¿Qué comemos hoy?", en: "What are we eating today?", cat: "Top words",
+    note: "comer = to eat · top word #156" },
+  { es: "¿Qué ha ocurrido?", en: "What happened?", cat: "Top words",
+    note: "ocurrir = to occur · top word #157" },
+  { es: "No recuerdo su nombre", en: "I don't remember her name", cat: "Top words",
+    note: "recordar = to remember · top word #158" },
+  { es: "Ya he terminado", en: "I'm done already", cat: "Top words",
+    note: "terminar = to finish · top word #159" },
+  { es: "No está permitido fumar", en: "Smoking isn't allowed", cat: "Top words",
+    note: "permitir = to allow · top word #160" },
+  { es: "Apareció de repente", en: "He appeared suddenly", cat: "Top words",
+    note: "aparecer = to appear · top word #161" },
+  { es: "¡Lo has conseguido!", en: "You did it!", cat: "Top words",
+    note: "conseguir = to get / achieve · top word #162" },
+  { es: "La clase comienza a las diez", en: "Class begins at ten", cat: "Top words",
+    note: "comenzar = to begin · top word #163" },
+  { es: "¿Para qué sirve esto?", en: "What is this for?", cat: "Top words",
+    note: "servir = to serve / be useful · top word #164" },
+  { es: "Voy a sacar dinero", en: "I'm going to take out cash", cat: "Top words",
+    note: "sacar = to take out · top word #165" },
+  { es: "¿Necesitas algo?", en: "Do you need anything?", cat: "Top words",
+    note: "necesitar = to need · top word #166" },
+  { es: "Mantenemos el contacto", en: "We keep in touch", cat: "Top words",
+    note: "mantener = to maintain / keep · top word #167" },
+  { es: "Resultó más fácil de lo que pensaba", en: "It turned out easier than I thought", cat: "Top words",
+    note: "resultar = to turn out · top word #168" },
+  { es: "Me gusta leer por la noche", en: "I like reading at night", cat: "Top words",
+    note: "leer = to read · top word #169" },
+  { es: "Se me ha caído el móvil", en: "I dropped my phone", cat: "Top words",
+    note: "caer = to fall · top word #170" },
+  { es: "¿Puedo cambiar la hora?", en: "Can I change the time?", cat: "Top words",
+    note: "cambiar = to change · top word #171" },
+  { es: "Te presento a mi amigo", en: "Let me introduce my friend", cat: "Top words",
+    note: "presentar = to present · top word #172" },
+  { es: "Queremos crear algo nuevo", en: "We want to create something new", cat: "Top words",
+    note: "crear = to create · top word #173" },
+  { es: "¿Me abres la puerta?", en: "Can you open the door for me?", cat: "Top words",
+    note: "abrir = to open · top word #174" },
+  { es: "Lo voy a considerar", en: "I'll consider it", cat: "Top words",
+    note: "considerar = to consider · top word #175" },
+  { es: "No te oigo bien", en: "I can't hear you well", cat: "Top words",
+    note: "oír = to hear · top word #176" },
+  { es: "Acabo de comer", en: "I just ate", cat: "Top words",
+    note: "acabar = to finish / end up · top word #177" },
+  { es: "El bar se convirtió en mi oficina", en: "The bar became my office", cat: "Top words",
+    note: "convertir = to convert / become · top word #178" },
+  { es: "¿Quién va ganando?", en: "Who's winning?", cat: "Top words",
+    note: "ganar = to win / earn · top word #179" },
+  { es: "Formamos un buen equipo", en: "We make a good team", cat: "Top words",
+    note: "formar = to form · top word #180" },
+  { es: "¿Me traes agua?", en: "Can you bring me water?", cat: "Top words",
+    note: "traer = to bring · top word #181" },
+  { es: "El tren parte a las nueve", en: "The train departs at nine", cat: "Top words",
+    note: "partir = to leave / split · top word #182" },
+  { es: "Me muero de sueño", en: "I'm dead tired", cat: "Top words",
+    note: "morir = to die · top word #183" },
+  { es: "¿Aceptáis tarjeta?", en: "Do you take card?", cat: "Top words",
+    note: "aceptar = to accept · top word #184" },
+  { es: "Realicé un curso de español", en: "I did a Spanish course", cat: "Top words",
+    note: "realizar = to carry out · top word #185" },
+  { es: "Supongo que tienes razón", en: "I suppose you're right", cat: "Top words",
+    note: "suponer = to suppose · top word #186" },
+  { es: "Ahora lo comprendo", en: "Now I understand it", cat: "Top words",
+    note: "comprender = to understand · top word #187" },
+  { es: "Lo lograremos juntos", en: "We'll manage it together", cat: "Top words",
+    note: "lograr = to achieve · top word #188" },
+  { es: "Pregunta lo que quieras", en: "Ask whatever you want", cat: "Top words",
+    note: "preguntar = to ask · top word #190" },
+  { es: "Toco la guitarra un poco", en: "I play a bit of guitar", cat: "Top words",
+    note: "tocar = to touch / play (instrument) · top word #191" },
+  { es: "No te había reconocido", en: "I didn't recognize you", cat: "Top words",
+    note: "reconocer = to recognize · top word #192" },
+  { es: "Estudio español por las mañanas", en: "I study Spanish in the mornings", cat: "Top words",
+    note: "estudiar = to study · top word #193" },
+  { es: "No alcanzo el estante", en: "I can't reach the shelf", cat: "Top words",
+    note: "alcanzar = to reach · top word #194" },
+  { es: "Nací en noviembre", en: "I was born in November", cat: "Top words",
+    note: "nacer = to be born · top word #195" },
+  { es: "Ella dirige la empresa", en: "She runs the company", cat: "Top words",
+    note: "dirigir = to direct · top word #196" },
+  { es: "Corro por la playa", en: "I run along the beach", cat: "Top words",
+    note: "correr = to run · top word #197" },
+  { es: "Me gustas", en: "I like you (romantic)", cat: "Top words",
+    note: "gustar = to please (me gusta) · top word #201" },
+  { es: "¿Jugamos a las cartas?", en: "Shall we play cards?", cat: "Top words",
+    note: "jugar = to play · top word #202" },
+  { es: "Mañana cumplo treinta", en: "Tomorrow I turn thirty", cat: "Top words",
+    note: "cumplir = to fulfill / turn (age) · top word #204" },
+  { es: "¿Qué me ofreces?", en: "What are you offering me?", cat: "Top words",
+    note: "ofrecer = to offer · top word #205" },
+  { es: "Me levanto a las siete", en: "I get up at seven", cat: "Top words",
+    note: "levantar = to raise / lift · top word #207" },
+  { es: "Lo intento otra vez", en: "I'll try again", cat: "Top words",
+    note: "intentar = to try · top word #208" },
+  { es: "¿Cómo se usa esto?", en: "How do you use this?", cat: "Top words",
+    note: "usar = to use · top word #209" },
+  { es: "Tú decides", en: "You decide", cat: "Top words",
+    note: "decidir = to decide · top word #210" },
+  { es: "No te olvides de mí", en: "Don't forget me", cat: "Top words",
+    note: "olvidar = to forget · top word #212" },
+  { es: "¿Cuánto vale?", en: "How much is it worth?", cat: "Top words",
+    note: "valer = to be worth · top word #213" },
+  { es: "Subimos andando", en: "We'll walk up", cat: "Top words",
+    note: "subir = to go up · top word #215" },
+  { es: "Me bajo en la próxima", en: "I get off at the next stop", cat: "Top words",
+    note: "bajar = to go down · top word #216" },
+  { es: "¿Me entiendes?", en: "Do you understand me?", cat: "Top words",
+    note: "entender = to understand · top word #217" },
+  { es: "Se vende el piso de arriba", en: "The flat upstairs is for sale", cat: "Top words",
+    note: "vender = to sell · top word #218" },
+  { es: "No me respondió", en: "He didn't answer me", cat: "Top words",
+    note: "responder = to answer · top word #219" },
+  { es: "No te muevas", en: "Don't move", cat: "Top words",
+    note: "mover = to move · top word #220" },
+  { es: "Muéstrame cómo", en: "Show me how", cat: "Top words",
+    note: "mostrar = to show · top word #221" },
+  { es: "Continuamos mañana", en: "We'll continue tomorrow", cat: "Top words",
+    note: "continuar = to continue · top word #222" },
+  { es: "Preparo la cena", en: "I'm making dinner", cat: "Top words",
+    note: "preparar = to prepare · top word #223" },
+  { es: "Anda, no me digas", en: "No way, you don't say", cat: "Top words",
+    note: "andar = to walk · top word #225" },
+  { es: "Recibí tu mensaje", en: "I got your message", cat: "Top words",
+    note: "recibir = to receive · top word #226" },
+  { es: "Elige tú", en: "You choose", cat: "Top words",
+    note: "elegir = to choose · top word #227" },
+  { es: "Me lo imagino", en: "I can imagine", cat: "Top words",
+    note: "imaginar = to imagine · top word #228" },
+  { es: "¿Qué quieres beber?", en: "What do you want to drink?", cat: "Top words",
+    note: "beber = to drink · top word #229" },
+  { es: "¿Cuánto falta?", en: "How long until we're there?", cat: "Top words",
+    note: "faltar = to be missing / lack · top word #230" },
+  { es: "¿Te acuerdas de mí?", en: "Do you remember me?", cat: "Top words",
+    note: "acordar = to agree / (‑se) remember · top word #231" },
+  { es: "Cierra la ventana, porfa", en: "Close the window, pls", cat: "Top words",
+    note: "cerrar = to close · top word #232" },
+  { es: "Cogemos el metro", en: "We'll take the metro", cat: "Top words",
+    note: "coger = to take / grab (Spain) · top word #233" },
+  { es: "Este calor me mata", en: "This heat is killing me", cat: "Top words",
+    note: "matar = to kill · top word #234" },
+  { es: "No importa", en: "It doesn't matter", cat: "Top words",
+    note: "importar = to matter · top word #235" },
+  { es: "Te guardo el sitio", en: "I'll save your spot", cat: "Top words",
+    note: "guardar = to keep / save · top word #236" },
+  { es: "Se ha roto el ascensor", en: "The lift is broken", cat: "Top words",
+    note: "romper = to break · top word #237" },
+  { es: "¿Me enseñas?", en: "Will you teach me?", cat: "Top words",
+    note: "enseñar = to teach / show · top word #238" },
+  { es: "Esta noche cocino yo", en: "Tonight I'm cooking", cat: "Top words",
+    note: "cocinar = to cook · top word #240" },
+  { es: "¿Bailamos?", en: "Shall we dance?", cat: "Top words",
+    note: "bailar = to dance · top word #242" },
+  { es: "Canta conmigo", en: "Sing with me", cat: "Top words",
+    note: "cantar = to sing · top word #243" },
+  { es: "Me haces reír", en: "You make me laugh", cat: "Top words",
+    note: "reír = to laugh · top word #244" },
+  { es: "Casi lloro de la risa", en: "I almost cried laughing", cat: "Top words",
+    note: "llorar = to cry · top word #245" },
+  { es: "Dame un beso", en: "Give me a kiss", cat: "Top words",
+    note: "besar = to kiss · top word #246" },
+  { es: "Se casan en junio", en: "They're getting married in June", cat: "Top words",
+    note: "casar = to marry (casarse) · top word #247" },
+  { es: "Soñé contigo", en: "I dreamt about you", cat: "Top words",
+    note: "soñar = to dream · top word #248" },
+  { es: "¿Cómo hay que vestir?", en: "What's the dress code?", cat: "Top words",
+    note: "vestir = to dress · top word #250" },
+  { es: "Tengo que lavar la ropa", en: "I have to do laundry", cat: "Top words",
+    note: "lavar = to wash · top word #251" },
+  { es: "Hoy toca limpiar", en: "Today's cleaning day", cat: "Top words",
+    note: "limpiar = to clean · top word #252" },
+  { es: "No me gusta conducir", en: "I don't like driving", cat: "Top words",
+    note: "conducir = to drive · top word #253" },
+  { es: "Vuelo el viernes", en: "I fly on Friday", cat: "Top words",
+    note: "volar = to fly · top word #254" },
+  { es: "¿Sabes nadar?", en: "Can you swim?", cat: "Top words",
+    note: "nadar = to swim · top word #255" },
+  { es: "No fumo, gracias", en: "I don't smoke, thanks", cat: "Top words",
+    note: "fumar = to smoke · top word #256" },
+  { es: "¿Lo puedo probar?", en: "Can I try it?", cat: "Top words",
+    note: "probar = to try / taste · top word #257" },
+  { es: "Tira de la puerta", en: "Pull the door", cat: "Top words",
+    note: "tirar = to throw / pull · top word #258" },
+  { es: "Te echo de menos", en: "I miss you", cat: "Top words",
+    note: "echar = to throw / pour · top word #259" },
+  { es: "Métetelo en el bolsillo", en: "Put it in your pocket", cat: "Top words",
+    note: "meter = to put in · top word #260" },
+  { es: "Apaga la luz, porfa", en: "Turn off the light, pls", cat: "Top words",
+    note: "apagar = to turn off · top word #261" },
+  { es: "¿Enciendo la calefacción?", en: "Shall I turn on the heating?", cat: "Top words",
+    note: "encender = to turn on · top word #262" },
+  { es: "Firma aquí", en: "Sign here", cat: "Top words",
+    note: "firmar = to sign · top word #263" },
+  { es: "Te lo envío ahora", en: "I'll send it to you now", cat: "Top words",
+    note: "enviar = to send · top word #264" },
+  { es: "Te recojo a las ocho", en: "I'll pick you up at eight", cat: "Top words",
+    note: "recoger = to pick up · top word #265" },
+  { es: "Me lo regalaron", en: "It was a gift", cat: "Top words",
+    note: "regalar = to gift · top word #266" },
+  { es: "¿Me lo prestas?", en: "Can you lend it to me?", cat: "Top words",
+    note: "prestar = to lend · top word #267" },
+  { es: "Te lo prometo", en: "I promise you", cat: "Top words",
+    note: "prometer = to promise · top word #268" },
+  { es: "No me mientas", en: "Don't lie to me", cat: "Top words",
+    note: "mentir = to lie · top word #269" },
+  { es: "Odio madrugar", en: "I hate getting up early", cat: "Top words",
+    note: "odiar = to hate · top word #270" },
+  { es: "Amo esta ciudad", en: "I love this city", cat: "Top words",
+    note: "amar = to love · top word #271" },
+  { es: "Echo de menos mi casa", en: "I miss home", cat: "Top words",
+    note: "echar de menos = to miss (someone) — Spain · top word #272" },
+  { es: "Me preocupa un poco", en: "It worries me a bit", cat: "Top words",
+    note: "preocupar = to worry · top word #273" },
+  { es: "¿Te molesta el ruido?", en: "Does the noise bother you?", cat: "Top words",
+    note: "molestar = to bother · top word #274" },
+  { es: "¡Qué susto me has dado!", en: "You scared me!", cat: "Top words",
+    note: "asustar = to scare · top word #275" },
+  { es: "Cállate un momento", en: "Be quiet a moment", cat: "Top words",
+    note: "callar = to be quiet · top word #276" },
+  { es: "¿Por qué gritas?", en: "Why are you shouting?", cat: "Top words",
+    note: "gritar = to shout · top word #277" },
+  { es: "Salúdala de mi parte", en: "Say hi to her from me", cat: "Top words",
+    note: "saludar = to greet · top word #278" },
+  { es: "¡Te felicito!", en: "Congratulations!", cat: "Top words",
+    note: "felicitar = to congratulate · top word #279" },
+  { es: "Te invito a una caña", en: "I'll buy you a beer", cat: "Top words",
+    note: "invitar = to invite · top word #280" },
+  { es: "Ven a visitarme", en: "Come visit me", cat: "Top words",
+    note: "visitar = to visit · top word #281" },
+  { es: "Te acompaño a casa", en: "I'll walk you home", cat: "Top words",
+    note: "acompañar = to accompany · top word #282" },
+  { es: "No queda pan", en: "There's no bread left", cat: "Top words",
+    note: "quedar = to remain / meet up · top word #283" },
+  { es: "Siéntate aquí", en: "Sit here", cat: "Top words",
+    note: "sentar = to sit (sentarse) · top word #284" },
+  { es: "No para de llover", en: "It won't stop raining", cat: "Top words",
+    note: "parar = to stop · top word #285" },
+  { es: "Ya está arreglado", en: "It's fixed now", cat: "Top words",
+    note: "arreglar = to fix · top word #286" },
+  { es: "El ascensor no funciona", en: "The lift isn't working", cat: "Top words",
+    note: "funcionar = to work (machines) · top word #287" },
+  { es: "Cuesta demasiado", en: "It costs too much", cat: "Top words",
+    note: "costar = to cost · top word #288" },
+  { es: "Me duele la espalda", en: "My back hurts", cat: "Top words",
+    note: "doler = to hurt · top word #289" },
+  { es: "Esto se cura solo", en: "This heals on its own", cat: "Top words",
+    note: "curar = to cure · top word #290" },
+  { es: "Crecí en Escocia", en: "I grew up in Scotland", cat: "Top words",
+    note: "crecer = to grow · top word #291" },
+  { es: "Cuídate mucho", en: "Take good care of yourself", cat: "Top words",
+    note: "cuidar = to take care of · top word #292" },
+  { es: "Hay que celebrarlo", en: "We have to celebrate", cat: "Top words",
+    note: "celebrar = to celebrate · top word #293" },
+  { es: "Disfruta del viaje", en: "Enjoy the trip", cat: "Top words",
+    note: "disfrutar = to enjoy · top word #294" },
+  { es: "Mi mujer llega mañana", en: "My wife arrives tomorrow", cat: "Top words",
+    note: "mujer = woman · top word #298" },
+  { es: "En ese caso, vamos", en: "In that case, let's go", cat: "Top words",
+    note: "caso = case · top word #299" },
+  { es: "¿De qué país eres?", en: "What country are you from?", cat: "Top words",
+    note: "país = country · top word #300" },
+  { es: "Es mi lugar favorito", en: "It's my favorite place", cat: "Top words",
+    note: "lugar = place · top word #301" },
+  { es: "Dame la mano", en: "Give me your hand", cat: "Top words",
+    note: "mano = hand · top word #306" },
+  { es: "De ninguna manera", en: "No way", cat: "Top words",
+    note: "manera = way / manner · top word #307" },
+  { es: "No hay problema", en: "No problem", cat: "Top words",
+    note: "problema = problem · top word #309" },
+  { es: "Tienes razón", en: "You're right", cat: "Top words",
+    note: "razón = reason · top word #314" },
+  { es: "La puerta está abierta", en: "The door is open", cat: "Top words",
+    note: "puerta = door · top word #315" },
+  { es: "Todo el mundo lo sabe", en: "Everybody knows", cat: "Top words",
+    note: "mundo = world · top word #318" },
+  { es: "Es una larga historia", en: "It's a long story", cat: "Top words",
+    note: "historia = history / story · top word #319" },
+  { es: "Barcelona es una ciudad increíble", en: "Barcelona is an incredible city", cat: "Top words",
+    note: "ciudad = city · top word #320" },
+  { es: "Su hija habla tres idiomas", en: "Her daughter speaks three languages", cat: "Top words",
+    note: "hija = daughter · top word #324" },
+  { es: "Ojo con el escalón", en: "Watch the step", cat: "Top words",
+    note: "ojo = eye · top word #328" },
+  { es: "Eso fue antes de la guerra", en: "That was before the war", cat: "Top words",
+    note: "guerra = war · top word #331" },
+  { es: "Necesito aire fresco", en: "I need fresh air", cat: "Top words",
+    note: "aire = air · top word #333" },
+  { es: "Por fin, tierra firme", en: "Finally, solid ground", cat: "Top words",
+    note: "tierra = earth / land · top word #334" },
+  { es: "¿Tienes un papel?", en: "Do you have a piece of paper?", cat: "Top words",
+    note: "papel = paper / role · top word #336" },
+  { es: "De niño vivía en Dundee", en: "As a kid I lived in Dundee", cat: "Top words",
+    note: "niño = boy / child · top word #337" },
+  { es: "La niña ya camina", en: "The little girl walks already", cat: "Top words",
+    note: "niña = girl · top word #338" },
+  { es: "Está justo en frente", en: "It's right in front", cat: "Top words",
+    note: "frente = front / forehead · top word #345" },
+  { es: "El domingo vamos al campo", en: "On Sunday we're going to the countryside", cat: "Top words",
+    note: "campo = countryside / field · top word #346" },
+  { es: "Estoy leyendo un buen libro", en: "I'm reading a good book", cat: "Top words",
+    note: "libro = book · top word #347" },
+  { es: "Tenemos buena relación", en: "We get along well", cat: "Top words",
+    note: "relación = relationship · top word #348" },
+  { es: "El mes que viene me mudo", en: "Next month I move", cat: "Top words",
+    note: "mes = month · top word #349" },
+  { es: "No llevo dinero encima", en: "I don't have cash on me", cat: "Top words",
+    note: "dinero = money · top word #351" },
+  { es: "Baja la voz", en: "Lower your voice", cat: "Top words",
+    note: "voz = voice · top word #353" },
+  { es: "Paso a paso", en: "Step by step", cat: "Top words",
+    note: "paso = step · top word #354" },
+  { es: "Se me hace la boca agua", en: "My mouth is watering", cat: "Top words",
+    note: "boca = mouth · top word #355" },
+  { es: "Vamos a pie", en: "Let's go on foot", cat: "Top words",
+    note: "pie = foot · top word #356" },
+  { es: "Soy donante de sangre", en: "I'm a blood donor", cat: "Top words",
+    note: "sangre = blood · top word #358" },
+  { es: "¿Jugamos un juego?", en: "Shall we play a game?", cat: "Top words",
+    note: "juego = game · top word #359" },
+  { es: "Dame un minuto", en: "Give me a minute", cat: "Top words",
+    note: "minuto = minute · top word #360" },
+  { es: "Un segundo, ya voy", en: "One second, coming", cat: "Top words",
+    note: "segundo = second · top word #361" },
+  { es: "Prefiero asiento de ventana", en: "I prefer a window seat", cat: "Top words",
+    note: "ventana = window · top word #362" },
+  { es: "El tren llega tarde", en: "The train is late", cat: "Top words",
+    note: "tren = train · top word #364" },
+  { es: "Nunca he viajado en barco", en: "I've never traveled by boat", cat: "Top words",
+    note: "barco = boat · top word #366" },
+  { es: "Vamos de camino", en: "We're on our way", cat: "Top words",
+    note: "camino = road / way · top word #367" },
+  { es: "¡Buen viaje!", en: "Have a good trip!", cat: "Top words",
+    note: "viaje = trip · top word #368" },
+  { es: "Me encanta el mar", en: "I love the sea", cat: "Top words",
+    note: "mar = sea · top word #370" },
+  { es: "El cielo está despejado", en: "The sky is clear", cat: "Top words",
+    note: "cielo = sky / heaven · top word #373" },
+  { es: "Odio la lluvia", en: "I hate the rain", cat: "Top words",
+    note: "lluvia = rain · top word #374" },
+  { es: "¿Tienes fuego?", en: "Got a light?", cat: "Top words",
+    note: "fuego = fire · top word #375" },
+  { es: "El desayuno está incluido", en: "Breakfast is included", cat: "Top words",
+    note: "desayuno = breakfast · top word #377" },
+  { es: "Pan con tomate, por favor", en: "Bread with tomato, please", cat: "Top words",
+    note: "pan = bread · top word #379" },
+  { es: "No como mucha carne", en: "I don't eat much meat", cat: "Top words",
+    note: "carne = meat · top word #380" },
+  { es: "El pescado está fresquísimo", en: "The fish is super fresh", cat: "Top words",
+    note: "pescado = fish (food) · top word #381" },
+  { es: "Compro fruta en el mercado", en: "I buy fruit at the market", cat: "Top words",
+    note: "fruta = fruit · top word #382" },
+  { es: "Una cerveza bien fría", en: "A nice cold beer", cat: "Top words",
+    note: "cerveza = beer · top word #386" },
+  { es: "Me duele el brazo", en: "My arm hurts", cat: "Top words",
+    note: "brazo = arm · top word #387" },
+  { es: "Estiro las piernas un poco", en: "I'll stretch my legs a bit", cat: "Top words",
+    note: "pierna = leg · top word #388" },
+  { es: "Con todo mi corazón", en: "With all my heart", cat: "Top words",
+    note: "corazón = heart · top word #389" },
+  { es: "Tengo la piel seca", en: "My skin is dry", cat: "Top words",
+    note: "piel = skin · top word #390" },
+  { es: "Me corté el pelo", en: "I got a haircut", cat: "Top words",
+    note: "pelo = hair · top word #391" },
+  { es: "Tienes buena cara hoy", en: "You look well today", cat: "Top words",
+    note: "cara = face · top word #392" },
+  { es: "Me duele un diente", en: "One of my teeth hurts", cat: "Top words",
+    note: "diente = tooth · top word #393" },
+  { es: "Me pican las orejas", en: "My ears are itchy", cat: "Top words",
+    note: "oreja = ear · top word #394" },
+  { es: "Tengo la nariz tapada", en: "My nose is blocked", cat: "Top words",
+    note: "nariz = nose · top word #395" },
+  { es: "Duermo de espaldas", en: "I sleep on my back", cat: "Top words",
+    note: "espalda = back · top word #396" },
+  { es: "Llevo la mochila al hombro", en: "I carry the backpack on my shoulder", cat: "Top words",
+    note: "hombro = shoulder · top word #397" },
+  { es: "Tengo cita con el médico", en: "I have a doctor's appointment", cat: "Top words",
+    note: "médico = doctor · top word #398" },
+  { es: "El hospital está cerca", en: "The hospital is nearby", cat: "Top words",
+    note: "hospital = hospital · top word #399" },
+  { es: "La escuela está al lado", en: "The school is next door", cat: "Top words",
+    note: "escuela = school · top word #400" },
+  { es: "La iglesia es del siglo doce", en: "The church is from the 12th century", cat: "Top words",
+    note: "iglesia = church · top word #402" },
+  { es: "La tienda cierra a las nueve", en: "The shop closes at nine", cat: "Top words",
+    note: "tienda = shop · top word #403" },
+  { es: "Los sábados voy al mercado", en: "On Saturdays I go to the market", cat: "Top words",
+    note: "mercado = market · top word #404" },
+  { es: "El banco abre a las ocho", en: "The bank opens at eight", cat: "Top words",
+    note: "banco = bank / bench · top word #405" },
+  { es: "El hotel tiene piscina", en: "The hotel has a pool", cat: "Top words",
+    note: "hotel = hotel · top word #406" },
+  { es: "Mi habitación da a la calle", en: "My room faces the street", cat: "Top words",
+    note: "habitación = room · top word #407" },
+  { es: "La cocina es pequeña", en: "The kitchen is small", cat: "Top words",
+    note: "cocina = kitchen · top word #408" },
+  { es: "¿Dónde está el baño?", en: "Where's the bathroom?", cat: "Top words",
+    note: "baño = bathroom · top word #409" },
+  { es: "Me voy a la cama", en: "I'm going to bed", cat: "Top words",
+    note: "cama = bed · top word #410" },
+  { es: "Trae otra silla", en: "Bring another chair", cat: "Top words",
+    note: "silla = chair · top word #411" },
+  { es: "Tengo que comprar ropa", en: "I need to buy clothes", cat: "Top words",
+    note: "ropa = clothes · top word #412" },
+  { es: "Estos zapatos me aprietan", en: "These shoes are tight", cat: "Top words",
+    note: "zapato = shoe · top word #413" },
+  { es: "Me gusta tu camisa", en: "I like your shirt", cat: "Top words",
+    note: "camisa = shirt · top word #414" },
+  { es: "Estos pantalones son cómodos", en: "These trousers are comfortable", cat: "Top words",
+    note: "pantalón = trousers · top word #415" },
+  { es: "Coge el abrigo, hace frío", en: "Grab your coat, it's cold", cat: "Top words",
+    note: "abrigo = coat · top word #416" },
+  { es: "He perdido el bolso", en: "I've lost my bag", cat: "Top words",
+    note: "bolso = bag / purse · top word #417" },
+  { es: "¿Has visto mis llaves?", en: "Have you seen my keys?", cat: "Top words",
+    note: "llave = key · top word #418" },
+  { es: "Mi reloj va atrasado", en: "My watch is slow", cat: "Top words",
+    note: "reloj = clock / watch · top word #419" },
+  { es: "Se me ha muerto el teléfono", en: "My phone died", cat: "Top words",
+    note: "teléfono = phone · top word #420" },
+  { es: "¿Nos haces una foto?", en: "Can you take a photo of us?", cat: "Top words",
+    note: "foto = photo · top word #422" },
+  { es: "Esta canción me encanta", en: "I love this song", cat: "Top words",
+    note: "canción = song · top word #424" },
+  { es: "Es un regalo para ti", en: "It's a gift for you", cat: "Top words",
+    note: "regalo = gift · top word #426" },
 ];
 
 // Card identity = Spanish text, so progress survives reordering/appending cards.
@@ -1557,7 +2025,8 @@ if ("speechSynthesis" in window) speechSynthesis.getVoices(); // warm up async v
 function playClip(card, lang, rateOverride) {
   if (player) player.pause();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
-  const a = new Audio("audio/" + lang + "/" + fnv1a(card.es) + ".mp3");
+  const dir = card.vocab && lang === "es" ? "vocab" : lang;
+  const a = new Audio("audio/" + dir + "/" + fnv1a(card.es) + ".mp3");
   a.playbackRate = rateOverride || rates[lang];
   a.chLang = lang;
   if ("preservesPitch" in a) a.preservesPitch = true;
@@ -1600,7 +2069,16 @@ function audioOnlyNow(card) {
 }
 
 function maybeAutoPlay(card) {
-  if (!autoSay || mode !== "study" || !card) return;
+  if (!autoSay || !card) return;
+  if (mode === "vocab") {
+    if (flipped) return; // the back is an English gloss with no clip
+    const key = card.id + ":f";
+    if (key === lastSpoken) return;
+    lastSpoken = key;
+    playClip(card, "es");
+    return;
+  }
+  if (mode !== "study") return;
   if (ladder && ladder.hash === fnv1a(card.es) &&
       activeDir === "en-es" && flipped) return; // ladder owns the Spanish audio
   const key = card.id + ":" + (flipped ? "b" : "f") + ":" + activeDir;
@@ -2120,7 +2598,7 @@ function buildBrowse() {
 function cardById(id) { return DECK.find(c => c.id === id); }
 
 function currentCard() {
-  if (mode === "vocab") return null;
+  if (mode === "vocab") return vocabCard();
   if (mode === "study") return queue.length ? cardById(queue[0]) : null;
   if (!browseOrder.length) return null;
   browseIdx = ((browseIdx % browseOrder.length) + browseOrder.length) % browseOrder.length;
@@ -2158,6 +2636,7 @@ let relearn = {};   // id -> corrects still needed this session (not persisted)
 let overtime = false;
 
 function grade(correct) {
+  if (mode === "vocab") { gradeVocab(correct); return; }
   if (mode !== "study" || !queue.length || !flipped) return;
   if (gradeLocked()) return;
   const id = queue.shift();
@@ -2218,19 +2697,60 @@ function render() {
   renderStats();
   const vocabMode = mode === "vocab";
   $("vocabPanel").hidden = !vocabMode;
-  document.querySelector(".card-stage").style.display = vocabMode ? "none" : "";
   document.querySelector(".progress").style.display = vocabMode ? "none" : "";
-  ["direction", "sound", "textmode", "pron", "rateEs", "rateEn"]
+  ["direction", "textmode", "pron", "rateEn"]
     .forEach(id => { $(id).style.display = vocabMode ? "none" : ""; });
   $("modeVocab").classList.toggle("active", vocabMode);
   if (vocabMode) {
     $("modeStudy").classList.remove("active");
     $("modeBrowse").classList.remove("active");
-    $("judge").classList.add("hidden");
+    vocabHeader();
     $("microw").classList.add("hidden");
     $("nav").classList.add("hidden");
+    const card = currentCard();
+    $("judge").classList.toggle("hidden", !card);
+    $("correct").hidden = !flipped;
+    $("wrong").hidden = !flipped;
+    $("correct").disabled = false;
+    $("wrong").disabled = false;
+    $("correct").textContent = "I know it ✓";
+    $("wrong").textContent = "Still learning ✗";
+    const cardEl = $("card");
+    if (!card) {
+      $("frontText").textContent = "🏆 Every word marked known";
+      $("frontCat").textContent = "";
+      $("frontHint").textContent = "reset progress clears vocab too";
+      $("backText").textContent = "";
+      $("backScore").textContent = "";
+      $("backNote").textContent = "";
+      $("backGloss").innerHTML = "";
+      $("backHint").textContent = "";
+      $("sayFront").hidden = true;
+      $("sayBack").hidden = true;
+      $("peek").hidden = true;
+      $("overtime").hidden = true;
+      cardEl.classList.remove("flipped");
+      return;
+    }
+    $("overtime").hidden = true;
+    const rank = VOCAB.findIndex(([x]) => x === card.es) + 1;
+    $("frontText").textContent = card.es;
+    $("frontCat").textContent = "word " + rank + " of " + VOCAB.length;
+    $("frontHint").textContent = "say the meaning out loud, then flip";
+    $("backText").textContent = card.en;
+    $("backScore").textContent = "";
+    $("backNote").textContent = "";
+    $("backGloss").textContent = card.breakdown;
+    $("backHint").textContent = "know it on sight? mark it known";
+    $("sayFront").hidden = false;
+    $("sayBack").hidden = true;
+    $("peek").hidden = true;
+    cardEl.classList.toggle("flipped", flipped);
+    maybeAutoPlay(card);
     return;
   }
+  $("correct").textContent = "Correct ✓";
+  $("wrong").textContent = "Wrong ✗";
   $("direction").textContent =
     dir === "mix" ? "Mixed 🎲" : dir === "es-en" ? "ES → EN" : "EN → ES";
   $("direction").title = dir === "mix"
@@ -2389,8 +2909,8 @@ function setMode(m) {
   if (m === "study") buildQueue();
   else if (m === "browse") buildBrowse();
   rollDir();
+  if (m === "vocab") { buildVocabQueue(); activeDir = "es-en"; }
   render();
-  if (m === "vocab") renderVocab();
 }
 
 // Push-to-talk on touch screens: hold the card to record (EN→ES), release
@@ -2429,6 +2949,12 @@ $("wrong").addEventListener("click", () => grade(false));
 // Skip: push the card to the back of today's queue, no grade, always allowed
 // (front or back, locked or not) — the escape hatch for any stuck moment.
 function skipCard() {
+  if (mode === "vocab") {
+    if (vocabQueue.length > 1) vocabQueue.push(vocabQueue.shift());
+    flipped = false;
+    render();
+    return;
+  }
   if (mode !== "study" || !queue.length) return;
   queue.push(queue.shift());
   flipped = false;
@@ -2459,15 +2985,16 @@ $("modeStudy").addEventListener("click", () => setMode("study"));
 $("modeBrowse").addEventListener("click", () => setMode("browse"));
 $("modeVocab").addEventListener("click", () => setMode("vocab"));
 
-// ---- Vocab: the top ~750 spoken words (≈80% of everyday speech) ----
-// Known-word marks live in localStorage; coverage estimate weights each word
-// by 1/rank (Zipf) and scales so the whole list ≈ 80% of spoken Spanish.
+// ---- Vocab: the top spoken words (≈80% of speech) as flashcards ----
+// Frequency order, unknown words only. "Correct" marks a word known forever
+// (feeds the coverage meter); "Wrong" retries it a few cards later. Coverage
+// weights words by 1/rank (Zipf), scaled so the full list ≈ 80% of speech.
 let VOCAB = null;
 let vocabKnown = JSON.parse(localStorage.getItem("chuleta-vocab") || "{}");
-let vocabBuilt = false;
+let vocabQueue = [];
 if (typeof fetch !== "undefined") {
   fetch("vocab.json").then(r => r.json())
-    .then(j => { VOCAB = j; if (mode === "vocab") renderVocab(); })
+    .then(j => { VOCAB = j; if (mode === "vocab") { buildVocabQueue(); render(); } })
     .catch(() => {});
 }
 
@@ -2482,52 +3009,39 @@ function vocabCoverage() {
   return 80 * k / h;
 }
 
-function playVocab(word) {
-  if (player) player.pause();
-  const a = new Audio("audio/vocab/" + fnv1a(word) + ".mp3");
-  a.onerror = () => speak(word, "es");
-  player = a;
-  a.play().catch(() => speak(word, "es"));
-}
-
 function vocabHeader() {
-  const n = Object.keys(vocabKnown).filter(w => vocabKnown[w]).length;
-  $("vocabKnown").textContent = n;
+  $("vocabKnown").textContent = Object.keys(vocabKnown).length;
   $("vocabCov").textContent = vocabCoverage().toFixed(1) + "%";
 }
 
-function renderVocab(filter) {
-  if (!VOCAB) { $("vocabList").textContent = "loading…"; return; }
-  const q = (filter || "").toLowerCase();
-  vocabHeader();
-  const frag = document.createDocumentFragment();
-  VOCAB.forEach(([w, g], i) => {
-    if (q && !w.toLowerCase().includes(q) && !g.toLowerCase().includes(q)) return;
-    const row = document.createElement("div");
-    row.className = "vrow" + (vocabKnown[w] ? " known" : "");
-    row.innerHTML = '<span class="rank">' + (i + 1) + '</span>' +
-      '<span class="w"></span><span class="g"></span>' +
-      '<button class="hear" title="Listen">🔊</button>' +
-      '<button class="know" title="I know this word">✓</button>';
-    row.children[1].textContent = w;
-    row.children[2].textContent = g;
-    row.querySelector(".hear").addEventListener("click", () => playVocab(w));
-    row.querySelector(".know").addEventListener("click", () => {
-      vocabKnown[w] = !vocabKnown[w];
-      if (!vocabKnown[w]) delete vocabKnown[w];
-      localStorage.setItem("chuleta-vocab", JSON.stringify(vocabKnown));
-      row.classList.toggle("known", !!vocabKnown[w]);
-      vocabHeader();
-    });
-    frag.appendChild(row);
-  });
-  const list = $("vocabList");
-  list.textContent = "";
-  list.appendChild(frag);
-  vocabBuilt = true;
+function buildVocabQueue() {
+  vocabQueue = VOCAB ? VOCAB.filter(([w]) => !vocabKnown[w]).map(([w]) => w) : [];
 }
 
-$("vocabSearch").addEventListener("input", e => renderVocab(e.target.value));
+function vocabCard() {
+  if (!vocabQueue.length) return null;
+  const w = vocabQueue[0];
+  const entry = VOCAB.find(([x]) => x === w);
+  return { id: "v:" + w, es: w, en: entry ? entry[1] : "",
+           breakdown: entry && entry[2] || "", cat: "", vocab: true };
+}
+
+function gradeVocab(correct) {
+  if (!vocabQueue.length || !flipped) return;
+  const w = vocabQueue.shift();
+  if (correct) {
+    vocabKnown[w] = true;
+    localStorage.setItem("chuleta-vocab", JSON.stringify(vocabKnown));
+  } else {
+    vocabQueue.splice(Math.min(5, vocabQueue.length), 0, w);
+  }
+  flipped = false;
+  rollDir();
+  activeDir = "es-en";
+  render();
+}
+
+
 
 $("shuffle").addEventListener("click", () => {
   for (let i = browseOrder.length - 1; i > 0; i--) {
