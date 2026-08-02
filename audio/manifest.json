@@ -1,0 +1,1378 @@
+{
+ "a2891b1e": {
+  "es": "¿Cuándo es tu cumpleaños?",
+  "en": "When is your birthday?"
+ },
+ "7ceda33a": {
+  "es": "Mi cumpleaños es el doce de noviembre",
+  "en": "My birthday is November 12th"
+ },
+ "c37da576": {
+  "es": "¿Qué signo eres?",
+  "en": "What sign are you?"
+ },
+ "85208d2a": {
+  "es": "Soy escorpio",
+  "en": "I am a Scorpio"
+ },
+ "88a97e7d": {
+  "es": "Mi signo es escorpio",
+  "en": "My sign is Scorpio"
+ },
+ "ea97ae8c": {
+  "es": "¿Estudias y/o trabajas?",
+  "en": "Do you study and/or work?"
+ },
+ "366d377d": {
+  "es": "(Yo) trabajo",
+  "en": "I work"
+ },
+ "543f9c4d": {
+  "es": "¿Qué estudias?",
+  "en": "What do you study?"
+ },
+ "e238d82c": {
+  "es": "¿Qué estudiaste?",
+  "en": "What did you study?"
+ },
+ "37a49243": {
+  "es": "Yo estudié...",
+  "en": "I studied..."
+ },
+ "e9f6e1ba": {
+  "es": "Estudié electrónica e informática",
+  "en": "I studied electronics and computer science"
+ },
+ "d6d6b96e": {
+  "es": "¿De qué trabajas? / ¿A qué te dedicas?",
+  "en": "What do you do for a living?"
+ },
+ "6b9ff028": {
+  "es": "Me dedico a dormir y a trabajar",
+  "en": "I dedicate myself to sleeping and working"
+ },
+ "ce5828ea": {
+  "es": "Pues trabajo de programador, en una fundación de blockchain",
+  "en": "Well, I work as a programmer at a blockchain nonprofit"
+ },
+ "228aa3e6": {
+  "es": "Soy informático",
+  "en": "I work in software / IT"
+ },
+ "457e47da": {
+  "es": "¿Qué aficiones tienes?",
+  "en": "What hobbies do you have?"
+ },
+ "4ce583d9": {
+  "es": "¿Qué haces en tu tiempo libre?",
+  "en": "What do you do in your free time?"
+ },
+ "10f0c47b": {
+  "es": "¿Qué te gusta hacer en tu tiempo libre?",
+  "en": "What do you like to do in your free time?"
+ },
+ "3c4e5cb4": {
+  "es": "En mi tiempo libre me gusta...",
+  "en": "In my free time I like..."
+ },
+ "6b0d644f": {
+  "es": "hacer ejercicio de fuerza",
+  "en": "to do strength training"
+ },
+ "8dbaf470": {
+  "es": "hacer yoga",
+  "en": "to do yoga"
+ },
+ "f566e7c1": {
+  "es": "escuchar música jazz en directo",
+  "en": "to listen to live jazz music"
+ },
+ "987fd3fe": {
+  "es": "música en directo",
+  "en": "live music"
+ },
+ "3bf70c77": {
+  "es": "Pero trabajo la mayoría del tiempo",
+  "en": "But I work most of the time"
+ },
+ "a39569e2": {
+  "es": "¿Cuántas veces a la semana haces yoga?",
+  "en": "How many times a week do you do yoga?"
+ },
+ "72919b9c": {
+  "es": "¿Qué tipo de yoga?",
+  "en": "What kind of yoga?"
+ },
+ "652c193a": {
+  "es": "Me gusta hacer yoga tres veces por semana",
+  "en": "I like to do yoga three times a week"
+ },
+ "0b9e9b8a": {
+  "es": "Me gusta hacer flow yoga",
+  "en": "I like to do flow yoga"
+ },
+ "80dd197d": {
+  "es": "Me gusta el yoga en general",
+  "en": "I like yoga in general"
+ },
+ "4aeef130": {
+  "es": "¿Hace cuánto (tiempo) haces yoga?",
+  "en": "How long have you been doing yoga?"
+ },
+ "3de0fdf2": {
+  "es": "¿Cómo lo descubriste?",
+  "en": "How did you discover it?"
+ },
+ "035df0e7": {
+  "es": "Descubrí el yoga durante la pandemia",
+  "en": "I discovered yoga during the pandemic"
+ },
+ "075be9de": {
+  "es": "¿Y qué te enganchó del yoga?",
+  "en": "And what hooked you on yoga?"
+ },
+ "1fab65b0": {
+  "es": "El yoga me curó la ansiedad",
+  "en": "Yoga cured my anxiety"
+ },
+ "4b063ecb": {
+  "es": "Y me ayudó a verme y a conocerme a mí mismo",
+  "en": "And it helped me see myself clearly and get to know myself"
+ },
+ "289d03c8": {
+  "es": "Estoy cansado / cansada",
+  "en": "I'm tired"
+ },
+ "57fa1a76": {
+  "es": "Estoy un poco cansado",
+  "en": "I'm a little tired"
+ },
+ "c205ec04": {
+  "es": "Estoy agotado",
+  "en": "I'm exhausted"
+ },
+ "4a358426": {
+  "es": "Estoy cansado pero bien",
+  "en": "I'm tired but good"
+ },
+ "53a1c757": {
+  "es": "No he dormido bien",
+  "en": "I haven't slept well"
+ },
+ "8132396e": {
+  "es": "He dormido fatal",
+  "en": "I've slept terribly"
+ },
+ "d604e078": {
+  "es": "Anoche no dormí bien",
+  "en": "I didn't sleep well last night"
+ },
+ "678a2472": {
+  "es": "¿Qué significa...?",
+  "en": "What does ... mean?"
+ },
+ "a61b8d05": {
+  "es": "¿Qué quiere decir...?",
+  "en": "What does ... mean? (lit. \"want to say\")"
+ },
+ "db0f46e2": {
+  "es": "¿Cómo se dice ... en español?",
+  "en": "How do you say ... in Spanish?"
+ },
+ "01f3e807": {
+  "es": "¿Cómo se escribe?",
+  "en": "How do you spell / write it?"
+ },
+ "530957b4": {
+  "es": "No entiendo",
+  "en": "I don't understand"
+ },
+ "e32c4103": {
+  "es": "porfa",
+  "en": "please (casual, like \"pls\")"
+ },
+ "3f1ced30": {
+  "es": "descubrir",
+  "en": "to discover / to find out"
+ },
+ "f17a15f0": {
+  "es": "enganchar",
+  "en": "to hook (someone on something)"
+ },
+ "8e62d5ca": {
+  "es": "curar",
+  "en": "to cure"
+ },
+ "c4c1f328": {
+  "es": "la ayuda",
+  "en": "help (noun)"
+ },
+ "f60a92cd": {
+  "es": "ayudar",
+  "en": "to help"
+ },
+ "82306882": {
+  "es": "ver",
+  "en": "to see / to watch"
+ },
+ "5f41e02e": {
+  "es": "conocer",
+  "en": "to know (a person) / to meet for the first time"
+ },
+ "cc6a5714": {
+  "es": "conocerme",
+  "en": "to know myself"
+ },
+ "2afcc42e": {
+  "es": "la electrónica",
+  "en": "electronics"
+ },
+ "175ebc98": {
+  "es": "la informática",
+  "en": "computer science"
+ },
+ "fff93ec1": {
+  "es": "una fundación",
+  "en": "a foundation (implies nonprofit)"
+ },
+ "43f51fb4": {
+  "es": "hasta luego",
+  "en": "see you later"
+ },
+ "9a9794c3": {
+  "es": "luego",
+  "en": "later"
+ },
+ "6cb4fc5e": {
+  "es": "hasta pronto",
+  "en": "see you soon"
+ },
+ "37b2b357": {
+  "es": "pronto",
+  "en": "soon"
+ },
+ "af7ae6b5": {
+  "es": "no pasa nada",
+  "en": "don't worry / no big deal"
+ },
+ "23a42038": {
+  "es": "Que tengas un buen día",
+  "en": "Have a good day"
+ },
+ "f530f589": {
+  "es": "tú también",
+  "en": "you too"
+ },
+ "83c386f8": {
+  "es": "llamarse",
+  "en": "to be called"
+ },
+ "fb8961b3": {
+  "es": "(yo) me llamo",
+  "en": "my name is / I am called"
+ },
+ "87210cb0": {
+  "es": "(tú) te llamas",
+  "en": "you are called"
+ },
+ "8e1f3574": {
+  "es": "(él/ella) se llama",
+  "en": "he/she is called"
+ },
+ "6b634005": {
+  "es": "(nosotros) nos llamamos",
+  "en": "we are called"
+ },
+ "57ad1b25": {
+  "es": "(vosotros) os llamáis",
+  "en": "you all are called (Spain)"
+ },
+ "dd5ea01a": {
+  "es": "(ellos) se llaman",
+  "en": "they are called"
+ },
+ "ca70aaec": {
+  "es": "llamar",
+  "en": "to call"
+ },
+ "45284fd7": {
+  "es": "una llamada",
+  "en": "a (phone) call"
+ },
+ "39b42ac1": {
+  "es": "pero / el perro",
+  "en": "but / the dog"
+ },
+ "8de8af41": {
+  "es": "el ratón",
+  "en": "the mouse"
+ },
+ "2454d591": {
+  "es": "cine, cena",
+  "en": "cinema, dinner"
+ },
+ "2af5d06e": {
+  "es": "casa, coche, cumpleaños",
+  "en": "house, car, birthday"
+ },
+ "1dafc5c3": {
+  "es": "mi padre",
+  "en": "my father"
+ },
+ "887f939e": {
+  "es": "tu padre",
+  "en": "your father"
+ },
+ "3c80a35a": {
+  "es": "hermano de acogida",
+  "en": "foster brother"
+ },
+ "ec45363d": {
+  "es": "hermano adoptivo",
+  "en": "adoptive brother"
+ },
+ "41627cd8": {
+  "es": "¿Hace cuánto tiempo vive con vosotros?",
+  "en": "How long has he/she lived with you (all)?"
+ },
+ "0fa5df37": {
+  "es": "Él ha vivido con ella",
+  "en": "He has lived with her"
+ },
+ "3859c419": {
+  "es": "Él lleva viviendo con ella desde hace ocho años",
+  "en": "He's been living with her for eight years"
+ },
+ "ee76cb88": {
+  "es": "el novio / la novia",
+  "en": "boyfriend / girlfriend"
+ },
+ "7e2f05d7": {
+  "es": "mi mejor amiga",
+  "en": "my best friend (f)"
+ },
+ "12c2cc98": {
+  "es": "¿En qué consiste tu trabajo?",
+  "en": "What does your job involve?"
+ },
+ "1b14b96b": {
+  "es": "coordinar gente",
+  "en": "to coordinate people"
+ },
+ "e75c5aee": {
+  "es": "escribir código",
+  "en": "to write code"
+ },
+ "1c6624d6": {
+  "es": "acelerar el desarrollo",
+  "en": "to speed up development"
+ },
+ "0f599113": {
+  "es": "la gente",
+  "en": "people"
+ },
+ "25708d34": {
+  "es": "consultor farmacéutico",
+  "en": "pharmaceutical consultant"
+ },
+ "eff0cc1a": {
+  "es": "¿Qué tal el fin de semana?",
+  "en": "How was the weekend?"
+ },
+ "3da2e4a2": {
+  "es": "¿Qué has hecho?",
+  "en": "What have you done?"
+ },
+ "33354aac": {
+  "es": "¿Qué hiciste?",
+  "en": "What did you do?"
+ },
+ "73030308": {
+  "es": "¿Qué más hiciste?",
+  "en": "What else did you do?"
+ },
+ "94c266ab": {
+  "es": "mucho sol",
+  "en": "a lot of sun"
+ },
+ "be51cdc5": {
+  "es": "Me preparé un poco para España",
+  "en": "I prepared a bit for Spain"
+ },
+ "335c5844": {
+  "es": "Compré los billetes de avión a España",
+  "en": "I bought the plane tickets to Spain"
+ },
+ "755e2e05": {
+  "es": "Reservé mi alojamiento",
+  "en": "I booked my accommodation"
+ },
+ "349dad17": {
+  "es": "¿Saliste a la calle?",
+  "en": "Did you go out?"
+ },
+ "4dced532": {
+  "es": "Fui a...",
+  "en": "I went to..."
+ },
+ "05a6f694": {
+  "es": "Fui a casa de mis amigos a ver fútbol",
+  "en": "I went to my friends' house to watch football"
+ },
+ "d030f8ce": {
+  "es": "Medité (por) una hora",
+  "en": "I meditated for an hour"
+ },
+ "d6c05b7f": {
+  "es": "reservar",
+  "en": "to book"
+ },
+ "34fa3bfb": {
+  "es": "comprar",
+  "en": "to buy"
+ },
+ "14bdb766": {
+  "es": "el avión",
+  "en": "the airplane"
+ },
+ "4aa0377f": {
+  "es": "el billete",
+  "en": "the ticket"
+ },
+ "da2cc8a3": {
+  "es": "el alojamiento",
+  "en": "accommodation"
+ },
+ "21a89cf8": {
+  "es": "compartir",
+  "en": "to share"
+ },
+ "541434f3": {
+  "es": "un piso",
+  "en": "a flat (Spain)"
+ },
+ "c13cfc3c": {
+  "es": "un apartamento",
+  "en": "an apartment"
+ },
+ "0a8bab2b": {
+  "es": "un piso compartido",
+  "en": "a shared flat"
+ },
+ "558036e7": {
+  "es": "¿Ha sido difícil encontrarlo?",
+  "en": "Has it been hard to find (it)?"
+ },
+ "3294ddd8": {
+  "es": "difícil",
+  "en": "difficult"
+ },
+ "b46fd4bf": {
+  "es": "fácil",
+  "en": "easy"
+ },
+ "79e4329f": {
+  "es": "encontrar",
+  "en": "to find"
+ },
+ "be9cc92e": {
+  "es": "¿En qué zona?",
+  "en": "In which area?"
+ },
+ "694becac": {
+  "es": "Él me ayudó",
+  "en": "He helped me"
+ },
+ "ae1aa069": {
+  "es": "Me quedaré con él",
+  "en": "I will stay with him"
+ },
+ "9dda4ac9": {
+  "es": "Él compró el apartamento recientemente",
+  "en": "He bought the apartment recently"
+ },
+ "3c5be229": {
+  "es": "cerca",
+  "en": "near"
+ },
+ "21847981": {
+  "es": "Edimburgo",
+  "en": "Edinburgh"
+ },
+ "fbafa7f9": {
+  "es": "quedar",
+  "en": "to meet up (planned, with people you know)"
+ },
+ "dff1a20c": {
+  "es": "Hoy quedo con mis amigos",
+  "en": "Today I'm meeting my friends"
+ },
+ "d8f7a941": {
+  "es": "quedarse",
+  "en": "to stay"
+ },
+ "91e72c3a": {
+  "es": "Este sábado me quedo en casa",
+  "en": "This Saturday I'm staying home"
+ },
+ "04a2c7ba": {
+  "es": "Este sábado quedaré con mis amigos",
+  "en": "This Saturday I'll meet up with my friends"
+ },
+ "1a34126c": {
+  "es": "encontrarse con alguien",
+  "en": "to run into someone (by chance)"
+ },
+ "6b2a3d33": {
+  "es": "Me encontré a tu madre en el supermercado",
+  "en": "I ran into your mother at the supermarket"
+ },
+ "228087b3": {
+  "es": "Mañana conoceré al novio de mi mejor amiga",
+  "en": "Tomorrow I'll meet my best friend's boyfriend"
+ },
+ "2a897b25": {
+  "es": "¿De qué conoces a este amigo?",
+  "en": "How do you know this friend?"
+ },
+ "ec378ff5": {
+  "es": "Lo conozco de la universidad",
+  "en": "I know him from university"
+ },
+ "21db5c6c": {
+  "es": "¿Cuántos años tiene (él)?",
+  "en": "How old is he?"
+ },
+ "77b26b3c": {
+  "es": "la misma edad que yo",
+  "en": "the same age as me"
+ },
+ "27450e2e": {
+  "es": "la edad",
+  "en": "age"
+ },
+ "a11ce14b": {
+  "es": "lo mismo",
+  "en": "the same (thing)"
+ },
+ "d2bc4b57": {
+  "es": "el mismo coche",
+  "en": "the same car"
+ },
+ "77e71243": {
+  "es": "¿Estudió lo mismo que tú?",
+  "en": "Did he study the same as you?"
+ },
+ "19b47cf2": {
+  "es": "Es mi primera vez",
+  "en": "It's my first time"
+ },
+ "10f7e922": {
+  "es": "¿Lo sabes?",
+  "en": "Do you know (it)?"
+ },
+ "e0100658": {
+  "es": "lunes",
+  "en": "Monday"
+ },
+ "dd91f2f1": {
+  "es": "martes",
+  "en": "Tuesday"
+ },
+ "8ace36bb": {
+  "es": "miércoles",
+  "en": "Wednesday"
+ },
+ "0098b953": {
+  "es": "jueves",
+  "en": "Thursday"
+ },
+ "ca976fab": {
+  "es": "viernes",
+  "en": "Friday"
+ },
+ "c1f3bfa2": {
+  "es": "sábado",
+  "en": "Saturday"
+ },
+ "6722f4b6": {
+  "es": "domingo",
+  "en": "Sunday"
+ },
+ "8c060f1e": {
+  "es": "la hora",
+  "en": "the hour / the time"
+ },
+ "6931d25f": {
+  "es": "el día",
+  "en": "the day"
+ },
+ "3b769585": {
+  "es": "la semana",
+  "en": "the week"
+ },
+ "42f00c13": {
+  "es": "el fin de semana",
+  "en": "the weekend"
+ },
+ "d8795484": {
+  "es": "ayer",
+  "en": "yesterday"
+ },
+ "f3c39683": {
+  "es": "hoy",
+  "en": "today"
+ },
+ "2f91b2b3": {
+  "es": "mañana",
+  "en": "tomorrow"
+ },
+ "d42c6a96": {
+  "es": "la mañana",
+  "en": "the morning"
+ },
+ "7f6fa02f": {
+  "es": "anoche",
+  "en": "last night"
+ },
+ "1d0ca7ff": {
+  "es": "meditar",
+  "en": "to meditate"
+ },
+ "afc2ec93": {
+  "es": "¿Cómo es la meditación vipassana?",
+  "en": "What is vipassana meditation like?"
+ },
+ "4376801d": {
+  "es": "El objetivo de vipassana es ver la vida tal y como es",
+  "en": "The goal of vipassana is to see life just as it is"
+ },
+ "840671cc": {
+  "es": "Te centras en la respiración",
+  "en": "You focus on your breathing"
+ },
+ "623a5b5b": {
+  "es": "Escaneas tu cuerpo desde la cabeza hasta los pies",
+  "en": "You scan your body from head to feet"
+ },
+ "64fc9b2e": {
+  "es": "la respiración",
+  "en": "breathing"
+ },
+ "8877b366": {
+  "es": "los sentidos",
+  "en": "the senses"
+ },
+ "e59d80df": {
+  "es": "atención plena",
+  "en": "mindfulness"
+ },
+ "ff7e0f5f": {
+  "es": "amor y bondad",
+  "en": "love and kindness"
+ },
+ "6aa1560f": {
+  "es": "amable",
+  "en": "kind (polite)"
+ },
+ "d3358c0a": {
+  "es": "la bondad",
+  "en": "kindness, goodness (from the heart)"
+ },
+ "ff6b3bc4": {
+  "es": "Estaba buscando nuevas técnicas de meditación",
+  "en": "I was looking for new meditation techniques"
+ },
+ "a22fdbd1": {
+  "es": "¿Qué otras técnicas de meditación has utilizado?",
+  "en": "What other meditation techniques have you used?"
+ },
+ "f7bf1fa1": {
+  "es": "hay",
+  "en": "there is / there are"
+ },
+ "7a5278c7": {
+  "es": "había",
+  "en": "there was / there were"
+ },
+ "700083aa": {
+  "es": "habrá",
+  "en": "there will be"
+ },
+ "b8ae5f22": {
+  "es": "Yo estaba buscando",
+  "en": "I was searching"
+ },
+ "80265a09": {
+  "es": "Yo estoy bebiendo",
+  "en": "I am drinking"
+ },
+ "6a2abda7": {
+  "es": "para / por",
+  "en": "for"
+ },
+ "f8d8524c": {
+  "es": "para aprender español",
+  "en": "(in order) to learn Spanish"
+ },
+ "65ebdb2c": {
+  "es": "solo los primeros años",
+  "en": "only the first years"
+ },
+ "51a1e410": {
+  "es": "de / a",
+  "en": "of, from / to"
+ },
+ "82c5f1b1": {
+  "es": "llevar",
+  "en": "to carry / to bring / to wear"
+ },
+ "48d3fa2b": {
+  "es": "Llevo una chaqueta roja",
+  "en": "I'm wearing a red jacket"
+ },
+ "d8701fa1": {
+  "es": "Llevo las cervezas a la cena",
+  "en": "I'm bringing the beers to dinner"
+ },
+ "88581a96": {
+  "es": "Llevo a mi hijo en brazos",
+  "en": "I carry my son in my arms"
+ },
+ "e4cd7d01": {
+  "es": "No me acuerdo",
+  "en": "I don't remember"
+ },
+ "3ea38262": {
+  "es": "No lo sé",
+  "en": "I don't know (it)"
+ },
+ "61bb37f7": {
+  "es": "¿Puedes repetir, por favor?",
+  "en": "Can you repeat, please?"
+ },
+ "e1836b6d": {
+  "es": "¿Puedes escribirlo?",
+  "en": "Can you write it down?"
+ },
+ "e12ee9ed": {
+  "es": "para llevar",
+  "en": "to take away (food / drink)"
+ },
+ "671fced4": {
+  "es": "dime",
+  "en": "tell me / go ahead"
+ },
+ "1137e7f6": {
+  "es": "¿Cómo?",
+  "en": "What? / Sorry? (didn't catch that)"
+ },
+ "4c3c9d5c": {
+  "es": "¿A qué te refieres?",
+  "en": "What do you mean / what are you referring to?"
+ },
+ "41513a20": {
+  "es": "significar",
+  "en": "to mean"
+ },
+ "d613bd12": {
+  "es": "Esta palabra significa...",
+  "en": "This word means..."
+ },
+ "56baabe2": {
+  "es": "referirse",
+  "en": "to refer (to)"
+ },
+ "f43f78e1": {
+  "es": "útil",
+  "en": "useful"
+ },
+ "3cbea6d5": {
+  "es": "las frases",
+  "en": "the sentences / phrases"
+ },
+ "30104397": {
+  "es": "hablar",
+  "en": "to speak, to talk"
+ },
+ "4a9ade3d": {
+  "es": "buscar",
+  "en": "to search, to look for"
+ },
+ "a079ff3d": {
+  "es": "utilizar",
+  "en": "to use"
+ },
+ "8bc68414": {
+  "es": "entonces",
+  "en": "then"
+ },
+ "635ea8be": {
+  "es": "así que...",
+  "en": "so..."
+ },
+ "e56fbbaa": {
+  "es": "o sea que...",
+  "en": "so... / in other words"
+ },
+ "076335e9": {
+  "es": "la soja",
+  "en": "soy"
+ },
+ "6d916200": {
+  "es": "salir",
+  "en": "to go out"
+ },
+ "53951ec1": {
+  "es": "la calle",
+  "en": "the street"
+ },
+ "c1c39dc8": {
+  "es": "la otra parte",
+  "en": "the other part"
+ },
+ "a3dfecf2": {
+  "es": "¿De qué parte...?",
+  "en": "From which part...?"
+ },
+ "5dc34c89": {
+  "es": "el cine",
+  "en": "the cinema"
+ },
+ "c57d5527": {
+  "es": "la cena",
+  "en": "the dinner"
+ },
+ "e753c3f2": {
+  "es": "la casa",
+  "en": "the house"
+ },
+ "0f36e560": {
+  "es": "el coche",
+  "en": "the car"
+ },
+ "60c8174f": {
+  "es": "el cumpleaños",
+  "en": "the birthday"
+ },
+ "1833e034": {
+  "es": "el supermercado",
+  "en": "the supermarket"
+ },
+ "9d54963e": {
+  "es": "prepararse",
+  "en": "to prepare (oneself)"
+ },
+ "7cedf2d9": {
+  "es": "vivir",
+  "en": "to live"
+ },
+ "5f3379bb": {
+  "es": "(yo) vi",
+  "en": "I saw / I watched"
+ },
+ "cd09dc0c": {
+  "es": "yo mismo / yo misma",
+  "en": "myself"
+ },
+ "21754a08": {
+  "es": "ocupado / ocupada",
+  "en": "busy"
+ },
+ "fe7abf34": {
+  "es": "¿Por qué?",
+  "en": "Why?"
+ },
+ "4012814b": {
+  "es": "porque...",
+  "en": "because..."
+ },
+ "77245eeb": {
+  "es": "Fue el cumpleaños de mi madre",
+  "en": "It was my mom's birthday"
+ },
+ "4d388d82": {
+  "es": "ir",
+  "en": "to go"
+ },
+ "325ba5eb": {
+  "es": "Hace una semana viajé a Londres",
+  "en": "A week ago I traveled to London"
+ },
+ "33eb5671": {
+  "es": "Él hace el café",
+  "en": "He makes the coffee"
+ },
+ "5ef67de9": {
+  "es": "deletrear",
+  "en": "to spell"
+ },
+ "710cc2f0": {
+  "es": "¿Puedes deletrearlo?",
+  "en": "Can you spell it?"
+ },
+ "8619d460": {
+  "es": "escribir",
+  "en": "to write"
+ },
+ "3e785dc2": {
+  "es": "anotar",
+  "en": "to write down / jot down"
+ },
+ "d14d25a6": {
+  "es": "la letra",
+  "en": "letter (a, b, c) / handwriting"
+ },
+ "77460f18": {
+  "es": "Me gusta tu letra",
+  "en": "I like your handwriting"
+ },
+ "4da84ff1": {
+  "es": "la palabra",
+  "en": "the word"
+ },
+ "50c988cc": {
+  "es": "¿En serio?",
+  "en": "Really? / Seriously?"
+ },
+ "d388bf7d": {
+  "es": "me gusta",
+  "en": "I like (it)"
+ },
+ "1ae3b4f7": {
+  "es": "me encanta",
+  "en": "I love (it)"
+ },
+ "e7c04b65": {
+  "es": "Estoy encantado con esa persona",
+  "en": "I'm delighted with that person"
+ },
+ "fc586535": {
+  "es": "te quiero",
+  "en": "I love you"
+ },
+ "d820a25a": {
+  "es": "te deseo",
+  "en": "I want you (physical)"
+ },
+ "29b862ba": {
+  "es": "quiero",
+  "en": "I want"
+ },
+ "e09cdb6f": {
+  "es": "Quiero conocer gente nueva",
+  "en": "I want to meet new people"
+ },
+ "f6839dd5": {
+  "es": "Anoche estuve hablando hasta las dos de la madrugada",
+  "en": "Last night I was talking until two in the morning"
+ },
+ "122b6d6a": {
+  "es": "¿De qué hablasteis anoche?",
+  "en": "What did you all talk about last night?"
+ },
+ "4539af6b": {
+  "es": "La conversación fue muy profunda",
+  "en": "The conversation was very deep"
+ },
+ "46cf0530": {
+  "es": "¿Sobre qué?",
+  "en": "About what?"
+ },
+ "683d1442": {
+  "es": "La vida, Dios, la familia y las conexiones entre todo esto",
+  "en": "Life, God, family and the connections between all of it"
+ },
+ "d6da2d72": {
+  "es": "Así que es difícil de explicar",
+  "en": "So it's hard to explain"
+ },
+ "8110be7e": {
+  "es": "Supongo...",
+  "en": "I guess..."
+ },
+ "11de6aaf": {
+  "es": "Podría ser",
+  "en": "It could be"
+ },
+ "7072130f": {
+  "es": "Estoy de acuerdo",
+  "en": "I agree"
+ },
+ "2d9b1e89": {
+  "es": "Creo que...",
+  "en": "I believe that..."
+ },
+ "6da0c40c": {
+  "es": "Pienso que...",
+  "en": "I think that..."
+ },
+ "a76c502c": {
+  "es": "El dolor puede ser visto desde una perspectiva positiva",
+  "en": "Pain can be seen from a positive perspective"
+ },
+ "397cae7e": {
+  "es": "No es mío",
+  "en": "It's not mine"
+ },
+ "8b8fb8e9": {
+  "es": "Cuando no nos escuchamos, el cuerpo te habla",
+  "en": "When we don't listen to ourselves, the body speaks to you"
+ },
+ "72d010c2": {
+  "es": "Nunca sentí ese dolor libremente",
+  "en": "I never felt that pain freely"
+ },
+ "fad4fec8": {
+  "es": "Siempre ha estado ahí",
+  "en": "It's always been there"
+ },
+ "b30dac73": {
+  "es": "Él falleció hace cuatro años",
+  "en": "He passed away four years ago"
+ },
+ "4fcd8c2d": {
+  "es": "Viajé y trabajé mucho para distraerme del dolor",
+  "en": "I traveled and worked a lot to distract myself from the pain"
+ },
+ "8089a0c8": {
+  "es": "por dos años y medio",
+  "en": "for two and a half years"
+ },
+ "4fa7dcc4": {
+  "es": "Fui a Taiwán para viajar y trabajar",
+  "en": "I went to Taiwan to travel and work"
+ },
+ "f7adede7": {
+  "es": "Hubo un terremoto",
+  "en": "There was an earthquake"
+ },
+ "61586a76": {
+  "es": "Fue muy aterrador",
+  "en": "It was terrifying"
+ },
+ "44597024": {
+  "es": "Fue un despertar de todo el dolor",
+  "en": "It was an awakening of all the pain"
+ },
+ "51173793": {
+  "es": "desde la infancia hasta ese momento",
+  "en": "from childhood until that moment"
+ },
+ "d7c2e115": {
+  "es": "Era como si mi cuerpo me gritara",
+  "en": "It was as if my body were screaming at me"
+ },
+ "a064a385": {
+  "es": "Me hizo más consciente de todo",
+  "en": "It made me more aware of everything"
+ },
+ "227b88fb": {
+  "es": "Eres mi terapeuta",
+  "en": "You're my therapist"
+ },
+ "fef2c0ae": {
+  "es": "todavía",
+  "en": "still / yet"
+ },
+ "22ba01da": {
+  "es": "también",
+  "en": "also / too"
+ },
+ "61659ce9": {
+  "es": "mucho",
+  "en": "a lot"
+ },
+ "86c066ab": {
+  "es": "Ya entiendo",
+  "en": "Ah, now I get it"
+ },
+ "99987ca1": {
+  "es": "Cambié de piso",
+  "en": "I moved flats"
+ },
+ "8e12ac49": {
+  "es": "Ellos son artistas",
+  "en": "They are artists"
+ },
+ "bf4e1b03": {
+  "es": "Trabajan cuando quieren",
+  "en": "They work when they want"
+ },
+ "26627e67": {
+  "es": "el pintor / la pintora",
+  "en": "painter"
+ },
+ "c5094797": {
+  "es": "el escritor / la escritora",
+  "en": "writer"
+ },
+ "b64399c4": {
+  "es": "algunos / algunas",
+  "en": "some"
+ },
+ "a42f5ecc": {
+  "es": "las cosas",
+  "en": "the things"
+ },
+ "667e106d": {
+  "es": "suponer",
+  "en": "to suppose / to guess"
+ },
+ "ec3d3fea": {
+  "es": "el dolor",
+  "en": "the pain"
+ },
+ "711fa046": {
+  "es": "el cuerpo",
+  "en": "the body"
+ },
+ "ce7dbfd3": {
+  "es": "el sistema nervioso",
+  "en": "the nervous system"
+ },
+ "2e5c1573": {
+  "es": "gestionar",
+  "en": "to manage / to handle"
+ },
+ "4da5eecd": {
+  "es": "libre",
+  "en": "free"
+ },
+ "1b44bfb0": {
+  "es": "libremente",
+  "en": "freely"
+ },
+ "50ca6850": {
+  "es": "explotar",
+  "en": "to explode"
+ },
+ "7de3abc5": {
+  "es": "después",
+  "en": "after / later"
+ },
+ "f54452ce": {
+  "es": "antes",
+  "en": "before"
+ },
+ "0c10bc23": {
+  "es": "fallecer",
+  "en": "to pass away"
+ },
+ "58545a82": {
+  "es": "morir",
+  "en": "to die"
+ },
+ "d64df1d6": {
+  "es": "gritar",
+  "en": "to scream, to yell"
+ },
+ "11315d89": {
+  "es": "los deberes",
+  "en": "homework"
+ },
+ "d3c6a781": {
+  "es": "disfrutar",
+  "en": "to enjoy"
+ },
+ "1eca15a5": {
+  "es": "¿Qué es? — Es...",
+  "en": "What is it? — It's..."
+ },
+ "ef2857fd": {
+  "es": "plátano chafado frito",
+  "en": "fried smashed banana"
+ },
+ "d49f3c16": {
+  "es": "chafar",
+  "en": "to smash (Spain, colloquial)"
+ },
+ "d20ab0f6": {
+  "es": "freír",
+  "en": "to fry"
+ },
+ "6c799a8f": {
+  "es": "Primero cortas el plátano en rodajas",
+  "en": "First you cut the banana into slices"
+ },
+ "86e0296e": {
+  "es": "Luego lo fríes en la sartén",
+  "en": "Then you fry it in the pan"
+ },
+ "7ced9d71": {
+  "es": "Pones los trozos en agua de ajo",
+  "en": "You put the pieces in garlic water"
+ },
+ "80859bd2": {
+  "es": "Y después los vuelves a freír",
+  "en": "And then you fry them again"
+ },
+ "69a06caa": {
+  "es": "la sartén",
+  "en": "the frying pan"
+ },
+ "ae05c6f8": {
+  "es": "el ajo",
+  "en": "garlic"
+ },
+ "69c483bf": {
+  "es": "la rodaja",
+  "en": "slice (round)"
+ },
+ "9cbeca2c": {
+  "es": "el trozo",
+  "en": "piece / chunk"
+ },
+ "0cd2fc61": {
+  "es": "primero... luego... después...",
+  "en": "first... then... after that..."
+ },
+ "b667bec9": {
+  "es": "pasear",
+  "en": "to go for a walk / to stroll"
+ },
+ "acd54af7": {
+  "es": "caminar / andar",
+  "en": "to walk"
+ },
+ "828ad231": {
+  "es": "Estuve preparando los documentos para el visado",
+  "en": "I was preparing my visa documents"
+ },
+ "ef1c374d": {
+  "es": "¿Puedo cancelar la clase del veintidós?",
+  "en": "Can I cancel the class on the 22nd?"
+ },
+ "38b640ee": {
+  "es": "Voy a estar volando",
+  "en": "I'm going to be flying"
+ },
+ "bb007a38": {
+  "es": "¡Claro!",
+  "en": "Of course!"
+ },
+ "e401240e": {
+  "es": "el finde",
+  "en": "the weekend (slang)"
+ },
+ "c173ccd3": {
+  "es": "¡Vamos a ver!",
+  "en": "We'll see!"
+ },
+ "be129953": {
+  "es": "¡Mucha suerte!",
+  "en": "Good luck!"
+ },
+ "bcb167b4": {
+  "es": "¡Que te mejores!",
+  "en": "Get better soon!"
+ },
+ "f50bb26e": {
+  "es": "Que tengas un buen fin de semana",
+  "en": "Have a good weekend"
+ },
+ "cbc15a54": {
+  "es": "sentirse",
+  "en": "to feel (an emotion)"
+ },
+ "dc8d7dd6": {
+  "es": "¿Cómo te sientes?",
+  "en": "How do you feel?"
+ },
+ "4d4e8337": {
+  "es": "Me siento...",
+  "en": "I feel..."
+ },
+ "d643936b": {
+  "es": "feliz",
+  "en": "happy"
+ },
+ "23ab8566": {
+  "es": "contento / contenta",
+  "en": "happy / pleased"
+ },
+ "5cf3da34": {
+  "es": "triste",
+  "en": "sad"
+ },
+ "f932a176": {
+  "es": "enfadado / enfadada",
+  "en": "angry (Spain)"
+ },
+ "3f25e6d5": {
+  "es": "la rabia",
+  "en": "anger / rage"
+ },
+ "7e1e9f04": {
+  "es": "nervioso / nerviosa",
+  "en": "nervous"
+ },
+ "685f40d6": {
+  "es": "preocupado / preocupada",
+  "en": "worried"
+ },
+ "33deead8": {
+  "es": "tranquilo / tranquila",
+  "en": "calm / relaxed"
+ },
+ "33d06018": {
+  "es": "estresado / estresada",
+  "en": "stressed"
+ },
+ "41ec8a8e": {
+  "es": "aburrido / aburrida",
+  "en": "bored (estar) / boring (ser)"
+ },
+ "800a5142": {
+  "es": "emocionado / emocionada",
+  "en": "excited"
+ },
+ "39947024": {
+  "es": "sorprendido / sorprendida",
+  "en": "surprised"
+ },
+ "27e85416": {
+  "es": "asustado / asustada",
+  "en": "scared"
+ },
+ "1c6fdac0": {
+  "es": "el miedo",
+  "en": "fear"
+ },
+ "b5266002": {
+  "es": "Tengo miedo",
+  "en": "I'm afraid"
+ },
+ "77c1b02c": {
+  "es": "avergonzado / avergonzada",
+  "en": "embarrassed"
+ },
+ "80e95304": {
+  "es": "celoso / celosa",
+  "en": "jealous"
+ },
+ "c162257c": {
+  "es": "orgulloso / orgullosa",
+  "en": "proud"
+ },
+ "e64d4720": {
+  "es": "enamorado / enamorada",
+  "en": "in love"
+ },
+ "1c215245": {
+  "es": "la ansiedad",
+  "en": "anxiety"
+ },
+ "784c0e38": {
+  "es": "las sensaciones",
+  "en": "sensations"
+ },
+ "0eb137d9": {
+  "es": "los sentimientos",
+  "en": "feelings"
+ },
+ "666df4a2": {
+  "es": "sensible",
+  "en": "sensitive"
+ }
+}
