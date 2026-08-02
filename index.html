@@ -1281,14 +1281,14 @@ function beep() {
     beepCtx ||= new AC();
     if (beepCtx.state === "suspended") beepCtx.resume();
     const o = beepCtx.createOscillator(), g = beepCtx.createGain();
-    o.frequency.value = 880;
+    o.frequency.value = 1000;
     g.gain.setValueAtTime(0.001, beepCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.25, beepCtx.currentTime + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.001, beepCtx.currentTime + 0.14);
+    g.gain.exponentialRampToValueAtTime(0.25, beepCtx.currentTime + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.001, beepCtx.currentTime + 0.07);
     o.connect(g);
     g.connect(beepCtx.destination);
     o.start();
-    o.stop(beepCtx.currentTime + 0.15);
+    o.stop(beepCtx.currentTime + 0.08);
   } catch {}
 }
 
@@ -1308,7 +1308,7 @@ async function startMic(card, auto) {
       else scoreRecording(card);
     };
     beep();
-    await new Promise(r => setTimeout(r, 170));
+    await new Promise(r => setTimeout(r, 90));
     mediaRec.start();
     micState = "rec";
     clearTimeout(micTimer);
