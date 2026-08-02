@@ -189,6 +189,19 @@
     cursor: pointer;
   }
   .face .peek[hidden] { display: none; }
+  .face .overtime { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+  .face .overtime[hidden] { display: none; }
+  .face .overtime button {
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--accent);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.4rem 1.1rem;
+    cursor: pointer;
+  }
+  .face .overtime button:hover { border-color: var(--accent); }
 
   .face .score { font-size: 0.8rem; color: var(--ink-soft); margin: 0; max-width: 52ch; }
   .w-good { color: var(--good); }
@@ -304,6 +317,10 @@
         <span class="eyebrow" id="frontCat"></span>
         <p class="phrase" id="frontText"></p>
         <button class="peek" id="peek" hidden>show text (t)</button>
+        <div class="overtime" id="overtime" hidden>
+          <button id="morePractice">♻ keep practicing</button>
+          <button id="moreNew">+10 new cards</button>
+        </div>
         <span class="hint" id="frontHint">say it out loud, then flip</span>
       </div>
       <div class="face back">
@@ -1548,9 +1565,27 @@ function filteredDeck() {
   return DECK.filter(c => category === "All" || c.cat === category);
 }
 
+// Overtime queue: weakest memories first (soonest due), 20 at a time,
+// rebuildable forever.
+function startOvertime() {
+  const seen = filteredDeck().filter(c => srs[c.id])
+    .sort((a, b) => stateOf(a.id).due - stateOf(b.id).due);
+  if (!seen.length) return;
+  queue = seen.slice(0, 20).map(c => c.id);
+  overtime = true;
+  sessionTotal = queue.length;
+  sessionDone = 0;
+  flipped = false;
+  peeked = false;
+  resetSpeech();
+  rollDir();
+  render();
+}
+
 function buildQueue() {
   rolloverNewLog();
   relearn = {};
+  overtime = false;
   const now = Date.now();
   const cards = filteredDeck();
   // Due = any card with saved state whose time has come. That includes lapsed
@@ -1603,6 +1638,10 @@ function nextDueInfo() {
 // rescheduled (one lucky retry is not relearned). After a lapse the second
 // interval is 3 days, not 6 — struggled cards deserve a tighter leash.
 let relearn = {};   // id -> corrects still needed this session (not persisted)
+// Overtime: practice past the scheduled queue. Correct answers leave the
+// schedule untouched (early success must not inflate intervals); a miss is
+// real evidence and gets the full lapse treatment.
+let overtime = false;
 
 function grade(correct) {
   if (mode !== "study" || !queue.length || !flipped) return;
@@ -1615,13 +1654,16 @@ function grade(correct) {
       relearn[id] -= 1;
       queue.splice(Math.min(8, queue.length), 0, id);
     } else {
+      const wasRelearning = relearn[id] !== undefined;
       delete relearn[id];
-      if (s.reps === 0) s.interval = 1;
-      else if (s.reps === 1) s.interval = s.lapses > 0 ? 3 : 6;
-      else s.interval = Math.round(s.interval * s.ease);
-      s.ease = Math.min(2.5, Math.round((s.ease + 0.05) * 100) / 100);
-      s.reps += 1;
-      s.due = Date.now() + s.interval * DAY;
+      if (!overtime || wasRelearning) {
+        if (s.reps === 0) s.interval = 1;
+        else if (s.reps === 1) s.interval = s.lapses > 0 ? 3 : 6;
+        else s.interval = Math.round(s.interval * s.ease);
+        s.ease = Math.min(2.5, Math.round((s.ease + 0.05) * 100) / 100);
+        s.reps += 1;
+        s.due = Date.now() + s.interval * DAY;
+      }
       sessionDone += 1;
     }
   } else {
@@ -1692,9 +1734,16 @@ function render() {
   }
 
   if (!card) {
-    $("frontText").textContent = mode === "study" ? "🎉 All done for today!" : "No cards here";
+    $("frontText").textContent = mode === "study" ? "🎉 Scheduled reviews done" : "No cards here";
     $("frontCat").textContent = "";
-    $("frontHint").textContent = mode === "study" ? nextDueInfo() : "";
+    $("frontHint").textContent = mode === "study"
+      ? [nextDueInfo(), "extra practice never stretches your intervals"].filter(Boolean).join(" · ")
+      : "";
+    const anySeen = filteredDeck().some(c => srs[c.id]);
+    const anyUnseen = filteredDeck().some(c => !srs[c.id]);
+    $("overtime").hidden = mode !== "study" || (!anySeen && !anyUnseen);
+    $("morePractice").hidden = !anySeen;
+    $("moreNew").hidden = !anyUnseen;
     $("backText").textContent = "";
     $("backScore").textContent = "";
     $("backNote").textContent = "";
@@ -1708,6 +1757,7 @@ function render() {
     return;
   }
 
+  $("overtime").hidden = true;
   const s = stateOf(card.id);
   const earOnly = audioOnlyNow(card);
   const sc = lastScore && lastScore.hash === fnv1a(card.es) ? lastScore : null;
@@ -1737,7 +1787,9 @@ function render() {
       const [chunk, meaning] = pair.split(" = ");
       return "<b>" + chunk + "</b>&thinsp;–&thinsp;" + (meaning || "");
     }).join(" &nbsp;·&nbsp; ");
-  $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · new" : "");
+  $("frontCat").textContent = card.cat +
+    (mode === "study" && s.reps === 0 ? " · new" : "") +
+    (overtime ? " · extra" : "");
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
   $("frontHint").textContent = mode !== "study" ? "tap to flip"
     : earOnly ? "listen — say the translation out loud"
@@ -1854,6 +1906,21 @@ function skipCard() {
   render();
 }
 $("skip").addEventListener("click", skipCard);
+
+$("morePractice").addEventListener("click", e => {
+  e.stopPropagation();   // the empty card face still flips on click
+  startOvertime();
+});
+$("moreNew").addEventListener("click", e => {
+  e.stopPropagation();
+  // Lend today 10 extra introduction slots (count may go negative; the
+  // daily rollover resets it tomorrow).
+  rolloverNewLog();
+  newLog.count -= 10;
+  saveNewLog();
+  buildQueue();
+  flipped = false; peeked = false; resetSpeech(); rollDir(); render();
+});
 $("next").addEventListener("click", () => move(1));
 $("prev").addEventListener("click", () => move(-1));
 $("modeStudy").addEventListener("click", () => setMode("study"));
