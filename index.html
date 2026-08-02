@@ -237,22 +237,22 @@
 <body>
 <main>
   <header>
-    <h1>chuleta<span class="tag">tu hoja de trucos 🥩</span></h1>
+    <h1>chuleta<span class="tag">your cheat sheet 🥩</span></h1>
     <div class="stats" id="stats"></div>
   </header>
 
   <div class="controls">
     <div class="seg">
-      <button id="modeStudy" class="active">Repasar</button>
-      <button id="modeBrowse">Explorar</button>
+      <button id="modeStudy" class="active">Study</button>
+      <button id="modeBrowse">Browse</button>
     </div>
-    <select id="category" title="Categoría"></select>
-    <button id="direction" title="Cambiar dirección">ES → EN</button>
-    <button id="sound" title="Reproducir audio automáticamente">🔊 auto</button>
-    <button id="textmode" title="Texto: siempre con texto · Auto: tarjetas maduras pasan a solo audio · Audio: siempre solo audio">🎓 auto</button>
-    <button id="shuffle" hidden>Barajar</button>
+    <select id="category" title="Category"></select>
+    <button id="direction" title="Change direction">ES → EN</button>
+    <button id="sound" title="Auto-play audio">🔊 auto</button>
+    <button id="textmode" title="Text: always show text · Auto: well-known cards switch to audio-only · Audio: always audio-only">🎓 auto</button>
+    <button id="shuffle" hidden>Shuffle</button>
     <span class="spacer"></span>
-    <button id="reset">Reiniciar progreso</button>
+    <button id="reset">Reset progress</button>
   </div>
 
   <div class="progress"><div id="bar"></div></div>
@@ -260,14 +260,14 @@
   <div class="card-stage">
     <div class="card" id="card">
       <div class="face front">
-        <button class="say" id="sayFront" title="Escuchar (e)">🔊</button>
+        <button class="say" id="sayFront" title="Listen (e)">🔊</button>
         <span class="eyebrow" id="frontCat"></span>
         <p class="phrase" id="frontText"></p>
-        <button class="peek" id="peek" hidden>mostrar texto (t)</button>
-        <span class="hint" id="frontHint">dilo en voz alta, luego gira</span>
+        <button class="peek" id="peek" hidden>show text (t)</button>
+        <span class="hint" id="frontHint">say it out loud, then flip</span>
       </div>
       <div class="face back">
-        <button class="say" id="sayBack" title="Escuchar (e)">🔊</button>
+        <button class="say" id="sayBack" title="Listen (e)">🔊</button>
         <span class="eyebrow" id="backLabel"></span>
         <p class="phrase" id="backText"></p>
         <p class="note" id="backNote"></p>
@@ -277,19 +277,19 @@
   </div>
 
   <div class="judge hidden" id="judge">
-    <button class="yes" id="correct">Correcta ✓</button>
-    <button class="no" id="wrong">Incorrecta ✗</button>
+    <button class="yes" id="correct">Correct ✓</button>
+    <button class="no" id="wrong">Wrong ✗</button>
   </div>
 
   <div class="nav hidden" id="nav">
-    <button id="prev">← anterior</button>
+    <button id="prev">← previous</button>
     <span class="pos" id="pos"></span>
-    <button id="next">siguiente →</button>
+    <button id="next">next →</button>
   </div>
 
   <footer>
-    <kbd>espacio</kbd> girar &nbsp; <kbd>1</kbd> correcta &nbsp; <kbd>2</kbd> incorrecta &nbsp;
-    <kbd>e</kbd> escuchar &nbsp; <kbd>t</kbd> mostrar texto &nbsp; <kbd>←</kbd><kbd>→</kbd> explorar &nbsp; <kbd>s</kbd> barajar
+    <kbd>space</kbd> flip &nbsp; <kbd>1</kbd> correct &nbsp; <kbd>2</kbd> wrong &nbsp;
+    <kbd>e</kbd> listen &nbsp; <kbd>t</kbd> show text &nbsp; <kbd>←</kbd><kbd>→</kbd> browse &nbsp; <kbd>s</kbd> shuffle
   </footer>
 </main>
 
@@ -797,7 +797,7 @@ function saveSrs() { localStorage.setItem("chuleta-srs", JSON.stringify(srs)); }
 let dir = localStorage.getItem("chuleta-dir2") || "mix";
 let activeDir = "en-es";
 let mode = "study";           // "study" | "browse"
-let category = "Todas";
+let category = "All";
 let flipped = false;
 
 function rollDir() {
@@ -813,7 +813,7 @@ let autoSay = localStorage.getItem("chuleta-sound") !== "0";
 // Scaffold fading: "texto" always shows text, "audio" is always audio-only,
 // "auto" flips a card to audio-only prompts once it has 2 successful reviews.
 let scaffold = localStorage.getItem("chuleta-scaffold") || "auto";
-let peeked = false;           // "mostrar texto" pressed for the current card
+let peeked = false;           // "show text" pressed for the current card
 let lastSpoken = "";
 let player = null;
 
@@ -882,7 +882,7 @@ let browseOrder = [];
 let browseIdx = 0;
 
 function filteredDeck() {
-  return DECK.filter(c => category === "Todas" || c.cat === category);
+  return DECK.filter(c => category === "All" || c.cat === category);
 }
 
 function buildQueue() {
@@ -915,11 +915,11 @@ function currentCard() {
 }
 
 function humanDelay(ms) {
-  if (ms <= 0) return "ahora";
+  if (ms <= 0) return "now";
   const h = Math.round(ms / 3600000);
-  if (h < 20) return "en " + Math.max(1, h) + (h === 1 ? " hora" : " horas");
+  if (h < 20) return "in " + Math.max(1, h) + (h === 1 ? " hour" : " hours");
   const d = Math.round(ms / DAY);
-  return d === 1 ? "mañana" : "en " + d + " días";
+  return d === 1 ? "tomorrow" : "in " + d + " days";
 }
 
 function nextDueInfo() {
@@ -928,7 +928,7 @@ function nextDueInfo() {
     .filter(s => s.reps > 0 && s.due > Date.now());
   if (!upcoming.length) return "";
   const soonest = Math.min(...upcoming.map(s => s.due));
-  return "Próximo repaso: " + humanDelay(soonest - Date.now());
+  return "Next review: " + humanDelay(soonest - Date.now());
 }
 
 // ---- SM-2 grading, binary buttons ----
@@ -976,19 +976,19 @@ function renderStats() {
     if (s.interval >= 21) learned++;
   });
   $("stats").innerHTML =
-    "nuevas <b>" + fresh + "</b> · para hoy <b>" + due + "</b> · " +
-    "<span class='learned'>aprendidas <b>" + learned + "</b></span>";
+    "new <b>" + fresh + "</b> · due today <b>" + due + "</b> · " +
+    "<span class='learned'>learned <b>" + learned + "</b></span>";
 }
 
 function render() {
   renderStats();
   $("direction").textContent =
-    dir === "mix" ? "Mixto 🎲" : dir === "es-en" ? "ES → EN" : "EN → ES";
+    dir === "mix" ? "Mixed 🎲" : dir === "es-en" ? "ES → EN" : "EN → ES";
   $("direction").title = dir === "mix"
-    ? "75% EN→ES, 25% ES→EN — pulsa para fijar la dirección"
-    : "Pulsa para cambiar la dirección";
+    ? "75% EN→ES, 25% ES→EN — click to fix the direction"
+    : "Click to change direction";
   $("sound").textContent = autoSay ? "🔊 auto" : "🔇 manual";
-  $("textmode").textContent = scaffold === "texto" ? "📖 texto" : scaffold === "audio" ? "🎧 audio" : "🎓 auto";
+  $("textmode").textContent = scaffold === "texto" ? "📖 text" : scaffold === "audio" ? "🎧 audio" : "🎓 auto";
   $("shuffle").hidden = mode === "study";
   $("modeStudy").classList.toggle("active", mode === "study");
   $("modeBrowse").classList.toggle("active", mode === "browse");
@@ -1007,7 +1007,7 @@ function render() {
   }
 
   if (!card) {
-    $("frontText").textContent = mode === "study" ? "🎉 ¡Todo hecho por hoy!" : "No hay tarjetas aquí";
+    $("frontText").textContent = mode === "study" ? "🎉 All done for today!" : "No cards here";
     $("frontCat").textContent = "";
     $("frontHint").textContent = mode === "study" ? nextDueInfo() : "";
     $("backText").textContent = "";
@@ -1026,13 +1026,13 @@ function render() {
   $("peek").hidden = !earOnly;
   $("backText").textContent = activeDir === "es-en" ? card.en : card.es;
   $("backNote").textContent = card.note || "";
-  $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · nueva" : "");
+  $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · new" : "");
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
-  $("frontHint").textContent = mode !== "study" ? "toca para girar"
-    : earOnly ? "escucha — di la traducción en voz alta"
-    : "dilo en voz alta, luego gira";
+  $("frontHint").textContent = mode !== "study" ? "tap to flip"
+    : earOnly ? "listen — say the translation out loud"
+    : "say it out loud, then flip";
   $("backHint").textContent = mode === "study"
-    ? "repítelo en voz alta · si acertaste: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY)
+    ? "repeat it out loud · if you got it: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY)
       // projected with pre-recovery ease; off by at most a day on long intervals
     : "";
   $("sayFront").hidden = false;
@@ -1121,7 +1121,7 @@ $("sayBack").addEventListener("click", e => {
 });
 
 $("reset").addEventListener("click", () => {
-  if (!confirm("¿Borrar todo el progreso de repaso?")) return;
+  if (!confirm("Delete all review progress?")) return;
   srs = {};
   saveSrs();
   newLog = { date: todayKey(), count: 0 };
@@ -1129,7 +1129,7 @@ $("reset").addEventListener("click", () => {
   setMode(mode);
 });
 
-const cats = ["Todas", ...new Set(DECK.map(c => c.cat))];
+const cats = ["All", ...new Set(DECK.map(c => c.cat))];
 $("category").innerHTML = cats.map(c => `<option>${c}</option>`).join("");
 $("category").addEventListener("change", e => {
   category = e.target.value;
