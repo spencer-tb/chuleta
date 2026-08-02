@@ -170,6 +170,17 @@
   }
   .face .say:hover { opacity: 1; }
   .face .say[hidden] { display: none; }
+  .face .peek {
+    font: inherit;
+    font-size: 0.8rem;
+    color: var(--accent);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem;
+    cursor: pointer;
+  }
+  .face .peek[hidden] { display: none; }
 
   .judge { display: flex; gap: 0.75rem; justify-content: center; min-height: 3rem; }
   .judge button {
@@ -237,7 +248,8 @@
     </div>
     <select id="category" title="Categoría"></select>
     <button id="direction" title="Cambiar dirección">ES → EN</button>
-    <button id="sound" title="Pronunciar automáticamente el español al descubrirlo">🔊 auto</button>
+    <button id="sound" title="Reproducir audio automáticamente">🔊 auto</button>
+    <button id="textmode" title="Texto: siempre con texto · Auto: tarjetas maduras pasan a solo audio · Audio: siempre solo audio">🎓 auto</button>
     <button id="shuffle" hidden>Barajar</button>
     <span class="spacer"></span>
     <button id="reset">Reiniciar progreso</button>
@@ -251,6 +263,7 @@
         <button class="say" id="sayFront" title="Escuchar (e)">🔊</button>
         <span class="eyebrow" id="frontCat"></span>
         <p class="phrase" id="frontText"></p>
+        <button class="peek" id="peek" hidden>mostrar texto (t)</button>
         <span class="hint" id="frontHint">dilo en voz alta, luego gira</span>
       </div>
       <div class="face back">
@@ -276,7 +289,7 @@
 
   <footer>
     <kbd>espacio</kbd> girar &nbsp; <kbd>1</kbd> correcta &nbsp; <kbd>2</kbd> incorrecta &nbsp;
-    <kbd>e</kbd> escuchar &nbsp; <kbd>←</kbd><kbd>→</kbd> explorar &nbsp; <kbd>s</kbd> barajar
+    <kbd>e</kbd> escuchar &nbsp; <kbd>t</kbd> mostrar texto &nbsp; <kbd>←</kbd><kbd>→</kbd> explorar &nbsp; <kbd>s</kbd> barajar
   </footer>
 </main>
 
@@ -791,40 +804,72 @@ function rollDir() {
   activeDir = dir === "mix" ? (Math.random() < 0.75 ? "en-es" : "es-en") : dir;
 }
 
-// ---- Text-to-speech ----
+// ---- Audio: pre-generated clips (ElevenLabs) with speechSynthesis fallback ----
 // Hearing the word builds its phonological form; reading alone means rehearsing
-// a guessed pronunciation. Auto mode speaks the Spanish whenever it's revealed
-// (never before — it would give the answer away); 🔊 or "e" speak on demand.
+// a guessed pronunciation. The prompt side plays in its own language when the
+// card appears; the answer side plays on reveal. Clip files are named by the
+// FNV-1a hash of the card's Spanish text (must match tools/gen_audio.py).
 let autoSay = localStorage.getItem("chuleta-sound") !== "0";
+// Scaffold fading: "texto" always shows text, "audio" is always audio-only,
+// "auto" flips a card to audio-only prompts once it has 2 successful reviews.
+let scaffold = localStorage.getItem("chuleta-scaffold") || "auto";
+let peeked = false;           // "mostrar texto" pressed for the current card
 let lastSpoken = "";
+let player = null;
 
-function esVoice() {
-  const vs = speechSynthesis.getVoices().filter(v => v.lang.startsWith("es"));
-  return vs.find(v => v.lang === "es-ES") || vs[0] || null;
+function fnv1a(s) {
+  let h = 0x811c9dc5;
+  for (const b of new TextEncoder().encode(s)) {
+    h ^= b;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
 }
-if ("speechSynthesis" in window) speechSynthesis.getVoices(); // warm up async voice list
 
-function speak(text) {
+function speak(text, lang) {
   if (!("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  const v = esVoice();
+  const tag = lang === "es" ? "es-ES" : "en-GB";
+  const vs = speechSynthesis.getVoices().filter(v => v.lang.startsWith(lang));
+  const v = vs.find(x => x.lang === tag) || vs[0];
   if (v) u.voice = v;
-  u.lang = "es-ES";
+  u.lang = tag;
   u.rate = 0.9;
   speechSynthesis.speak(u);
 }
+if ("speechSynthesis" in window) speechSynthesis.getVoices(); // warm up async voice list
 
-function showingSpanish() {
-  return activeDir === "es-en" ? !flipped : flipped;
+function playClip(card, lang) {
+  if (player) player.pause();
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  const a = new Audio("audio/" + lang + "/" + fnv1a(card.es) + ".mp3");
+  const fallback = () => speak(lang === "es" ? card.es : card.en, lang);
+  a.onerror = fallback; // clip missing (e.g. card added but audio not regenerated)
+  player = a;
+  a.play().catch(err => {
+    // NotAllowedError = autoplay blocked before first tap — stay silent;
+    // anything else means the file didn't load, so fall back to browser TTS.
+    if (err && err.name !== "NotAllowedError" && err.name !== "AbortError") fallback();
+  });
 }
 
-function maybeAutoSay(card) {
-  if (!autoSay || mode !== "study" || !card || !showingSpanish()) return;
-  const key = card.id + (flipped ? ":b" : ":f");
+function promptLang() { return activeDir === "es-en" ? "es" : "en"; }
+function answerLang() { return activeDir === "es-en" ? "en" : "es"; }
+function visibleLang() { return flipped ? answerLang() : promptLang(); }
+
+// Audio-only prompt for this card right now?
+function audioOnlyNow(card) {
+  if (mode !== "study" || scaffold === "texto" || peeked) return false;
+  return scaffold === "audio" || stateOf(card.id).reps >= 2;
+}
+
+function maybeAutoPlay(card) {
+  if (!autoSay || mode !== "study" || !card) return;
+  const key = card.id + ":" + (flipped ? "b" : "f") + ":" + activeDir;
   if (key === lastSpoken) return;
   lastSpoken = key;
-  speak(card.es);
+  playClip(card, visibleLang());
 }
 
 // Study session
@@ -915,6 +960,7 @@ function grade(correct) {
   saveSrs();
   if (isNew) { rolloverNewLog(); newLog.count += 1; saveNewLog(); }
   flipped = false;
+  peeked = false;
   rollDir();
   render();
 }
@@ -942,6 +988,7 @@ function render() {
     ? "75% EN→ES, 25% ES→EN — pulsa para fijar la dirección"
     : "Pulsa para cambiar la dirección";
   $("sound").textContent = autoSay ? "🔊 auto" : "🔇 manual";
+  $("textmode").textContent = scaffold === "texto" ? "📖 texto" : scaffold === "audio" ? "🎧 audio" : "🎓 auto";
   $("shuffle").hidden = mode === "study";
   $("modeStudy").classList.toggle("active", mode === "study");
   $("modeBrowse").classList.toggle("active", mode === "browse");
@@ -968,25 +1015,30 @@ function render() {
     $("backHint").textContent = "";
     $("sayFront").hidden = true;
     $("sayBack").hidden = true;
+    $("peek").hidden = true;
     cardEl.classList.remove("flipped");
     return;
   }
 
   const s = stateOf(card.id);
-  $("frontText").textContent = activeDir === "es-en" ? card.es : card.en;
+  const earOnly = audioOnlyNow(card);
+  $("frontText").textContent = earOnly ? "🎧" : (activeDir === "es-en" ? card.es : card.en);
+  $("peek").hidden = !earOnly;
   $("backText").textContent = activeDir === "es-en" ? card.en : card.es;
   $("backNote").textContent = card.note || "";
   $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · nueva" : "");
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
-  $("frontHint").textContent = mode === "study" ? "dilo en voz alta, luego gira" : "toca para girar";
+  $("frontHint").textContent = mode !== "study" ? "toca para girar"
+    : earOnly ? "escucha — di la traducción en voz alta"
+    : "dilo en voz alta, luego gira";
   $("backHint").textContent = mode === "study"
-    ? "si acertaste, la próxima será " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY)
+    ? "repítelo en voz alta · si acertaste: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY)
       // projected with pre-recovery ease; off by at most a day on long intervals
     : "";
-  $("sayFront").hidden = activeDir !== "es-en";
-  $("sayBack").hidden = activeDir !== "en-es";
+  $("sayFront").hidden = false;
+  $("sayBack").hidden = false;
   cardEl.classList.toggle("flipped", flipped);
-  maybeAutoSay(card);
+  maybeAutoPlay(card);
 }
 
 function flip() {
@@ -998,6 +1050,7 @@ function flip() {
 function move(step) {
   if (mode !== "browse") return;
   flipped = false;
+  peeked = false;
   browseIdx += step;
   rollDir();
   render();
@@ -1006,6 +1059,7 @@ function move(step) {
 function setMode(m) {
   mode = m;
   flipped = false;
+  peeked = false;
   if (m === "study") buildQueue(); else buildBrowse();
   rollDir();
   render();
@@ -1024,27 +1078,47 @@ $("shuffle").addEventListener("click", () => {
     const j = Math.floor(Math.random() * (i + 1));
     [browseOrder[i], browseOrder[j]] = [browseOrder[j], browseOrder[i]];
   }
-  browseIdx = 0; flipped = false; rollDir(); render();
+  browseIdx = 0; flipped = false; peeked = false; rollDir(); render();
 });
 
 $("direction").addEventListener("click", () => {
   dir = dir === "mix" ? "en-es" : dir === "en-es" ? "es-en" : "mix";
   localStorage.setItem("chuleta-dir2", dir);
-  flipped = false; rollDir(); render();
+  flipped = false; peeked = false; rollDir(); render();
 });
 
 $("sound").addEventListener("click", () => {
   autoSay = !autoSay;
   localStorage.setItem("chuleta-sound", autoSay ? "1" : "0");
-  if (!autoSay && "speechSynthesis" in window) speechSynthesis.cancel();
+  if (!autoSay) {
+    if (player) player.pause();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+  }
   render();
 });
 
-["sayFront", "sayBack"].forEach(id => $(id).addEventListener("click", e => {
+$("textmode").addEventListener("click", () => {
+  scaffold = scaffold === "auto" ? "audio" : scaffold === "audio" ? "texto" : "auto";
+  localStorage.setItem("chuleta-scaffold", scaffold);
+  render();
+});
+
+$("peek").addEventListener("click", e => {
+  e.stopPropagation();
+  peeked = true;
+  render();
+});
+
+$("sayFront").addEventListener("click", e => {
   e.stopPropagation();
   const card = currentCard();
-  if (card) speak(card.es);
-}));
+  if (card) playClip(card, promptLang());
+});
+$("sayBack").addEventListener("click", e => {
+  e.stopPropagation();
+  const card = currentCard();
+  if (card) playClip(card, answerLang());
+});
 
 $("reset").addEventListener("click", () => {
   if (!confirm("¿Borrar todo el progreso de repaso?")) return;
@@ -1072,7 +1146,10 @@ document.addEventListener("keydown", e => {
   else if (e.key === "s" && mode === "browse") $("shuffle").click();
   else if (e.key === "e") {
     const c = currentCard();
-    if (c && showingSpanish()) speak(c.es);
+    if (c) playClip(c, visibleLang());
+  }
+  else if (e.key === "t") {
+    if (currentCard() && audioOnlyNow(currentCard())) { peeked = true; render(); }
   }
 });
 

@@ -14,10 +14,19 @@ Two modes:
   Say the answer out loud, flip (`space`), then grade yourself: `1` correct, `2` wrong.
 - **Explorar** — free browsing: `←` / `→` to navigate, `s` to shuffle.
 
-**Audio**: the 🔊 button (or `e`) pronounces the Spanish with the browser's Spanish
-voice. With **🔊 auto** on (default), the Spanish is spoken whenever it's revealed —
-hearing the word builds its sound form, which is what your inner voice rehearses.
-Audio never plays before you answer, so it can't give the answer away.
+**Audio-first**: every card has pre-generated studio-quality audio (`audio/`) —
+Spanish by *Bon* (young Barcelona/Castilian voice from ElevenLabs, the accent to
+imitate) and English by *Brooke* (calm American voice). With **🔊 auto** on
+(default), the prompt side plays in its own language when a card appears and the
+answer plays on reveal. The 🔊 buttons / `e` replay. After the reveal, **repeat
+the Spanish out loud after the voice** (shadowing — see below). If a clip is
+missing (new card, audio not regenerated yet) the browser's TTS fills in.
+
+**Scaffold fading** (the 🎓 toggle): in **auto** mode, once a card has 2
+successful reviews its prompt becomes **audio-only** (🎧) — you must understand
+the spoken Spanish with no text to lean on, which is what real conversation
+demands. `t` / *mostrar texto* peeks when your ears fail you. **📖 texto** keeps
+text always; **🎧 audio** goes audio-only immediately.
 
 The direction button cycles **Mixto 🎲** (default: each card randomly rolls 75%
 EN → ES, 25% ES → EN) → fixed EN → ES → fixed ES → EN. Producing Spanish from English
@@ -40,6 +49,13 @@ Grading uses the **SM-2 algorithm** (the same family Anki uses):
 Expanding intervals exploit the spacing effect, and self-grading after out-loud recall
 exploits the testing effect — the two most robust findings in memory research.
 
+The audio-first design is deliberate too: skills are modality-specific, so if the
+goal is *speaking and listening*, practice has to be hearing and saying, not reading
+(transfer-appropriate processing). Hearing a native voice builds the word's sound
+form (phonological memory), fading the text out forces real speech decoding, and
+repeating after the voice is **shadowing** — one of the best-evidenced techniques
+for listening comprehension, prosody, and fluency (Hamada 2016+).
+
 ## On your phone
 
 The app is a **PWA**: served over HTTPS it can be installed to the home screen and
@@ -51,8 +67,9 @@ localStorage — there's no sync between devices).
 
 ## Roadmap
 
-- **Voice mode**: record yourself saying the phrase (Web Speech API), compare against
-  the target — start with recognized-text matching, later real pronunciation scoring.
+- **Pronunciation scoring** (next): speak the Spanish answer into the mic, Azure
+  Pronunciation Assessment scores it — per-word color coding, tap a word for the
+  phoneme-level breakdown, all es-ES.
 - **Conversation mode**: questions only, answer out loud like a mock lesson.
 - **More cards**: the fastest route to conversation is coverage — ~1,000 highest-
   frequency words ≈ 80% of everyday speech. Grow the deck along a frequency list.
@@ -63,4 +80,11 @@ Edit the `DECK` array at the top of the `<script>` in `index.html`:
 
 ```js
 { es: "la chuleta", en: "cheat sheet", cat: "Vocabulario", note: "optional extra context" },
+```
+
+Then regenerate audio for the new cards only (needs the ElevenLabs key in
+`~/.config/chuleta/elevenlabs.key`; existing clips are skipped):
+
+```sh
+python3 tools/gen_audio.py
 ```

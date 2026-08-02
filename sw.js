@@ -1,6 +1,7 @@
-// Network-first, cache-fallback: deck edits show up immediately when online,
-// and the whole app keeps working offline (reviews save to localStorage anyway).
-const CACHE = "chuleta-v1";
+// Network-first with cache fallback for the app shell (deck edits show up
+// immediately when online), cache-first for audio clips (content-addressed by
+// text hash, so effectively immutable — and instant on replay).
+const CACHE = "chuleta-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,6 +25,16 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET" || !e.request.url.startsWith(self.location.origin)) return;
+  if (e.request.url.includes("/audio/")) {
+    e.respondWith(
+      caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return res;
+      }))
+    );
+    return;
+  }
   e.respondWith(
     fetch(e.request)
       .then(res => {
