@@ -42,8 +42,17 @@ def load_deck():
     return cards
 
 
-def speakable(text: str, lang: str) -> str:
+# Cards where "a / b" is a contrast pair to keep hearing in full, even though
+# the other side has no slash.
+KEEP_BOTH = {"para / por"}
+
+
+def speakable(text: str, other: str, lang: str) -> str:
     t = text.replace("y/o", "o").replace("and/or", "or")
+    # "a / b" with no slash on the other side = alternatives for one meaning:
+    # speak only the first. Slash on both sides = contrast pair: speak both.
+    if " / " in t and " / " not in other and text not in KEEP_BOTH:
+        t = t.split(" / ")[0]
     if lang == "es":
         t = re.sub(r"[()]", "", t)  # "(yo) trabajo" -> "yo trabajo"
     else:
@@ -95,10 +104,10 @@ def main():
     manifest, work = {}, []
     for (es, en), h in zip(cards, hashes):
         manifest[h] = {"es": es, "en": en}
-        for lang, text in (("es", es), ("en", en)):
+        for lang, text, other in (("es", es, en), ("en", en, es)):
             dest = ROOT / "audio" / lang / f"{h}.mp3"
             if not dest.exists():
-                work.append((dest, voice_ids[lang], speakable(text, lang)))
+                work.append((dest, voice_ids[lang], speakable(text, other, lang)))
 
     (ROOT / "audio").mkdir(exist_ok=True)
     (ROOT / "audio" / "es").mkdir(exist_ok=True)

@@ -157,6 +157,14 @@
     color: var(--ink-soft);
   }
   .face .note { font-size: 0.9rem; color: var(--ink-soft); max-width: 46ch; }
+  .face .gloss {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    max-width: 52ch;
+    line-height: 1.7;
+    margin: 0;
+  }
+  .face .gloss b { color: var(--ink); font-weight: 600; }
   .face .say {
     position: absolute;
     top: 0.75rem;
@@ -273,6 +281,7 @@
         <span class="eyebrow" id="backLabel"></span>
         <p class="phrase" id="backText"></p>
         <p class="note" id="backNote"></p>
+        <p class="gloss" id="backGloss"></p>
         <span class="hint" id="backHint"></span>
       </div>
     </div>
@@ -769,6 +778,133 @@ const DECK = [
 // Card identity = Spanish text, so progress survives reordering/appending cards.
 DECK.forEach(c => c.id = c.es);
 
+// Word-by-word literal breakdowns, shown on the back of phrase cards.
+// Format: "chunk = literal meaning · chunk = literal meaning".
+const GLOSS = {
+  "¿Cuándo es tu cumpleaños?": "cuándo = when · es = is · tu = your · cumpleaños = birthday",
+  "Mi cumpleaños es el doce de noviembre": "mi = my · es = is · el doce = the 12th · de = of · noviembre = November",
+  "¿Qué signo eres?": "qué = what · signo = sign · eres = you-are (ser)",
+  "¿Estudias y/o trabajas?": "estudias = you-study · o = or · trabajas = you-work",
+  "Estudié electrónica e informática": "estudié = I-studied · e = and (before i-) · informática = computer science",
+  "¿De qué trabajas? / ¿A qué te dedicas?": "de qué = of-what · trabajas = you-work · a qué = to-what · te dedicas = you-dedicate-yourself",
+  "Me dedico a dormir y a trabajar": "me dedico = I-dedicate-myself · a = to · dormir = sleep · y = and · trabajar = work",
+  "Pues trabajo de programador, en una fundación de blockchain": "pues = well · trabajo de = I-work-as · en = in · una fundación = a foundation",
+  "¿En qué consiste tu trabajo?": "en qué = in-what · consiste = consists · tu trabajo = your job",
+  "¿Qué aficiones tienes?": "qué = what · aficiones = hobbies · tienes = you-have",
+  "¿Qué haces en tu tiempo libre?": "qué = what · haces = you-do · en = in · tiempo libre = free time",
+  "¿Qué te gusta hacer en tu tiempo libre?": "qué = what · te gusta = pleases-you · hacer = to-do",
+  "En mi tiempo libre me gusta...": "en = in · mi = my · me gusta = it-pleases-me",
+  "hacer ejercicio de fuerza": "hacer = to-do · ejercicio = exercise · de fuerza = of-strength",
+  "escuchar música jazz en directo": "escuchar = to-listen · música = music · en directo = live",
+  "música en directo": "en directo = live (lit. in-direct)",
+  "Pero trabajo la mayoría del tiempo": "pero = but · trabajo = I-work · la mayoría = the majority · del = of-the · tiempo = time",
+  "¿Cuántas veces a la semana haces yoga?": "cuántas veces = how-many times · a la semana = per week · haces = you-do",
+  "Me gusta hacer yoga tres veces por semana": "me gusta = it-pleases-me · hacer = to-do · tres veces = three times · por semana = per week",
+  "¿Hace cuánto (tiempo) haces yoga?": "hace cuánto = since how-long (lit. it-makes how-much) · haces = you-do",
+  "¿Cómo lo descubriste?": "cómo = how · lo = it · descubriste = you-discovered",
+  "Descubrí el yoga durante la pandemia": "descubrí = I-discovered · durante = during · la pandemia = the pandemic",
+  "¿Y qué te enganchó del yoga?": "qué = what · te enganchó = hooked-you · del = of-the",
+  "El yoga me curó la ansiedad": "me curó = cured-me · la ansiedad = the anxiety",
+  "Y me ayudó a verme y a conocerme a mí mismo": "me ayudó = helped-me · a = to · verme = see-myself · conocerme = know-myself · a mí mismo = to my-self",
+  "Estoy cansado / cansada": "estoy = I-am (estar) · cansado = tired",
+  "Estoy un poco cansado": "un poco = a little",
+  "No he dormido bien": "no = not · he dormido = I-have-slept · bien = well",
+  "He dormido fatal": "he dormido = I-have-slept · fatal = terribly",
+  "Anoche no dormí bien": "anoche = last-night · dormí = I-slept (pret.)",
+  "¿Qué significa...?": "qué = what · significa = it-means",
+  "¿Qué quiere decir...?": "quiere decir = wants to-say (= means)",
+  "¿Cómo se dice ... en español?": "cómo = how · se dice = one-says · en = in",
+  "¿Cómo se escribe?": "cómo = how · se escribe = one-writes",
+  "No me acuerdo": "no = not · me acuerdo = I-remember-myself",
+  "No lo sé": "no = not · lo = it · sé = I-know",
+  "¿Puedes repetir, por favor?": "puedes = you-can · repetir = repeat · por favor = please",
+  "¿Puedes escribirlo?": "puedes = you-can · escribirlo = write-it",
+  "para llevar": "para = for · llevar = carrying (take-away)",
+  "¿A qué te refieres?": "a qué = to-what · te refieres = you-refer-yourself",
+  "Esta palabra significa...": "esta = this · palabra = word · significa = means",
+  "¿Puedes deletrearlo?": "puedes = you-can · deletrearlo = spell-it",
+  "Ya entiendo": "ya = now/already · entiendo = I-understand",
+  "¿Por qué?": "por = for · qué = what",
+  "hasta luego": "hasta = until · luego = later",
+  "hasta pronto": "hasta = until · pronto = soon",
+  "no pasa nada": "no pasa = doesn't-happen · nada = nothing",
+  "Que tengas un buen día": "que = that (wish) · tengas = you-have (subjunctive) · un buen día = a good day",
+  "¿Hace cuánto tiempo vive con vosotros?": "hace cuánto tiempo = for how-long · vive = he/she-lives · con = with · vosotros = you-all",
+  "Él ha vivido con ella": "ha vivido = has-lived · con = with · ella = her",
+  "Él lleva viviendo con ella desde hace ocho años": "lleva viviendo = carries living (= has-been-living) · desde hace = since ago · ocho años = eight years",
+  "¿Qué tal el fin de semana?": "qué tal = how-goes · el fin de semana = the weekend",
+  "¿Qué has hecho?": "qué = what · has hecho = you-have-done",
+  "¿Qué hiciste?": "qué = what · hiciste = you-did (pret.)",
+  "Me preparé un poco para España": "me preparé = I-prepared-myself · un poco = a little · para = for",
+  "Compré los billetes de avión a España": "compré = I-bought · los billetes = the tickets · de avión = of-plane · a = to",
+  "Reservé mi alojamiento": "reservé = I-booked · alojamiento = accommodation",
+  "¿Saliste a la calle?": "saliste = you-went-out · a la calle = to the street",
+  "Fui a casa de mis amigos a ver fútbol": "fui = I-went · a casa de = to house of · a ver = to watch",
+  "Medité (por) una hora": "medité = I-meditated · una hora = one hour",
+  "Fue el cumpleaños de mi madre": "fue = it-was · de mi madre = of my mother",
+  "¿Ha sido difícil encontrarlo?": "ha sido = it-has-been · difícil = difficult · encontrarlo = find-it",
+  "Me quedaré con él": "me quedaré = I-will-stay · con él = with him",
+  "Él compró el apartamento recientemente": "compró = he-bought · recientemente = recently",
+  "Cambié de piso": "cambié de = I-changed-of (no article)",
+  "Estuve preparando los documentos para el visado": "estuve preparando = I-was preparing · para = for · el visado = the visa",
+  "Hoy quedo con mis amigos": "hoy = today · quedo = I-meet-up · con = with",
+  "Este sábado me quedo en casa": "este = this · me quedo = I-stay · en casa = at home",
+  "Este sábado quedaré con mis amigos": "quedaré = I-will-meet-up",
+  "Me encontré a tu madre en el supermercado": "me encontré a = I-ran-into · tu madre = your mother",
+  "Mañana conoceré al novio de mi mejor amiga": "conoceré = I-will-meet · al = to-the (personal a + el) · mejor = best",
+  "¿De qué conoces a este amigo?": "de qué = from-what · conoces a = you-know (person)",
+  "Lo conozco de la universidad": "lo conozco = I-know-him · de = from",
+  "¿Cuántos años tiene (él)?": "cuántos años = how-many years · tiene = he-has",
+  "la misma edad que yo": "la misma = the same · edad = age · que = as",
+  "¿Estudió lo mismo que tú?": "estudió = he-studied · lo mismo que = the same as",
+  "¿Lo sabes?": "lo = it · sabes = you-know",
+  "El objetivo de vipassana es ver la vida tal y como es": "el objetivo = the goal · ver = to-see · la vida = the life · tal y como es = just as it-is",
+  "Te centras en la respiración": "te centras = you-center-yourself · en = on · la respiración = the breathing",
+  "Escaneas tu cuerpo desde la cabeza hasta los pies": "escaneas = you-scan · desde = from · la cabeza = the head · hasta = until · los pies = the feet",
+  "atención plena": "atención = attention · plena = full",
+  "Estaba buscando nuevas técnicas de meditación": "estaba buscando = I-was searching · nuevas = new",
+  "¿Qué otras técnicas de meditación has utilizado?": "otras = other · has utilizado = you-have-used",
+  "Llevo una chaqueta roja": "llevo = I-wear/carry · una chaqueta = a jacket · roja = red",
+  "Llevo las cervezas a la cena": "llevo = I-bring · las cervezas = the beers · a la cena = to the dinner",
+  "Llevo a mi hijo en brazos": "llevo = I-carry · a mi hijo = my son (personal a) · en brazos = in arms",
+  "Hace una semana viajé a Londres": "hace una semana = one week ago · viajé = I-traveled · a = to",
+  "para aprender español": "para = in-order-to · aprender = to-learn",
+  "solo los primeros años": "solo = only · los primeros = the first · años = years",
+  "Me gusta tu letra": "me gusta = it-pleases-me · tu letra = your handwriting",
+  "Estoy encantado con esa persona": "encantado = enchanted · con esa persona = with that person",
+  "Quiero conocer gente nueva": "quiero = I-want · conocer = to-meet · gente nueva = new people",
+  "me gusta": "me = to-me · gusta = it-pleases",
+  "me encanta": "me = to-me · encanta = it-enchants",
+  "Anoche estuve hablando hasta las dos de la madrugada": "anoche = last-night · estuve hablando = I-was talking · hasta = until · las dos = two o'clock · de la madrugada = of the small-hours",
+  "¿De qué hablasteis anoche?": "de qué = about-what · hablasteis = you-all-talked (vosotros)",
+  "La conversación fue muy profunda": "fue = was · muy = very · profunda = deep",
+  "Así que es difícil de explicar": "así que = so · difícil de explicar = hard to explain",
+  "Estoy de acuerdo": "estoy = I-am · de acuerdo = of accord",
+  "El dolor puede ser visto desde una perspectiva positiva": "el dolor = the pain · puede ser visto = can be seen · desde = from",
+  "Cuando no nos escuchamos, el cuerpo te habla": "cuando = when · nos escuchamos = we-listen-to-ourselves · te habla = speaks-to-you",
+  "Nunca sentí ese dolor libremente": "nunca = never · sentí = I-felt · ese = that",
+  "Siempre ha estado ahí": "siempre = always · ha estado = it-has-been · ahí = there",
+  "Él falleció hace cuatro años": "falleció = he-passed-away · hace cuatro años = four years ago",
+  "Viajé y trabajé mucho para distraerme del dolor": "viajé = I-traveled · trabajé = I-worked · para distraerme = to distract-myself · del = from-the",
+  "Fui a Taiwán para viajar y trabajar": "fui = I-went · para = in-order-to",
+  "Hubo un terremoto": "hubo = there-was (event) · un terremoto = an earthquake",
+  "Fue un despertar de todo el dolor": "fue = it-was · un despertar = an awakening · de todo = of all",
+  "desde la infancia hasta ese momento": "desde = from · la infancia = childhood · hasta = until · ese momento = that moment",
+  "Era como si mi cuerpo me gritara": "era = it-was · como si = as if · me gritara = screamed-at-me (past subj.)",
+  "Me hizo más consciente de todo": "me hizo = it-made-me · más = more · consciente = aware",
+  "Primero cortas el plátano en rodajas": "primero = first · cortas = you-cut · en rodajas = in slices",
+  "Luego lo fríes en la sartén": "luego = then · lo fríes = you-fry-it · en la sartén = in the pan",
+  "Pones los trozos en agua de ajo": "pones = you-put · los trozos = the pieces · agua de ajo = garlic water",
+  "Y después los vuelves a freír": "después = after · los vuelves a freír = you-return to fry-them (= fry again)",
+  "¿Puedo cancelar la clase del veintidós?": "puedo = I-can · cancelar = cancel · del = of-the · veintidós = 22nd",
+  "Voy a estar volando": "voy a = I-am-going-to · estar volando = be flying",
+  "¡Que te mejores!": "que = that (wish) · te mejores = you-get-better (subj.)",
+  "Que tengas un buen fin de semana": "tengas = you-have (subj.) · fin de semana = weekend",
+  "¿Cómo te sientes?": "cómo = how · te sientes = you-feel-yourself",
+  "Tengo miedo": "tengo = I-have · miedo = fear",
+  "Trabajan cuando quieren": "trabajan = they-work · cuando = when · quieren = they-want",
+};
+
 const DAY = 24 * 60 * 60 * 1000;
 const NEW_PER_DAY = 20;
 const $ = id => document.getElementById(id);
@@ -1027,6 +1163,7 @@ function render() {
     $("frontHint").textContent = mode === "study" ? nextDueInfo() : "";
     $("backText").textContent = "";
     $("backNote").textContent = "";
+    $("backGloss").innerHTML = "";
     $("backHint").textContent = "";
     $("sayFront").hidden = true;
     $("sayBack").hidden = true;
@@ -1041,6 +1178,11 @@ function render() {
   $("peek").hidden = !earOnly;
   $("backText").textContent = activeDir === "es-en" ? card.en : card.es;
   $("backNote").textContent = card.note || "";
+  $("backGloss").innerHTML = (GLOSS[card.es] || "").split(" · ").filter(Boolean)
+    .map(pair => {
+      const [chunk, meaning] = pair.split(" = ");
+      return "<b>" + chunk + "</b> " + (meaning || "");
+    }).join(" · ");
   $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · new" : "");
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
   $("frontHint").textContent = mode !== "study" ? "tap to flip"
