@@ -336,6 +336,7 @@
     <select id="category" title="Category"></select>
     <button id="direction" title="Change direction">ES → EN</button>
     <button id="sound" title="Auto-play audio">🔊 auto</button>
+    <button id="pron" title="Pronunciation practice: repeat ladder, mic scoring, auto-grading">🎤 on</button>
     <button id="textmode" title="Text: always show text · Auto: well-known cards switch to audio-only · Audio: always audio-only">🎓 auto</button>
     <button id="rateEs" title="Spanish voice speed">ES 1×</button>
     <button id="rateEn" title="English voice speed">EN 1×</button>
@@ -1497,6 +1498,8 @@ let mediaRec = null, micChunks = [], micTimer = null;
 // Hands-free mode: unlocked after the first successful score (mic permission
 // and model are known-good by then), then EN→ES cards listen automatically.
 let autoMic = localStorage.getItem("chuleta-automic") === "1";
+// Master switch for all pronunciation features (ladder, mic, grade lock).
+let pronOn = localStorage.getItem("chuleta-pron") !== "0";
 let lastListenKey = "";
 let vadCtx = null, vadTimer = null, vadNoSpeech = false, micAuto = false;
 let lastScore = null;         // { hash, words: [{w, ph, ok, score}], overall }
@@ -1559,7 +1562,7 @@ function scoreWords(refWords, hyp) {
 }
 
 function canScore(card) {
-  return mode === "study" && activeDir === "en-es" && !!card &&
+  return pronOn && mode === "study" && activeDir === "en-es" && !!card &&
     !!(PHONEMES && PHONEMES[fnv1a(card.es)]) &&
     typeof navigator !== "undefined" && !!navigator.mediaDevices;
 }
@@ -1773,7 +1776,7 @@ const LADDER_TRIES = 3;   // misses allowed per speed before moving on anyway
 let ladder = null;        // { hash, step, attempts, done }
 
 function repeatEligible(card) {
-  return !!card && mode === "study" &&
+  return pronOn && !!card && mode === "study" &&
     !!(PHONEMES && PHONEMES[fnv1a(card.es)]) &&
     typeof navigator !== "undefined" && !!navigator.mediaDevices;
 }
@@ -2089,7 +2092,7 @@ function render() {
   $("vocabPanel").hidden = !vocabMode;
   document.querySelector(".card-stage").style.display = vocabMode ? "none" : "";
   document.querySelector(".progress").style.display = vocabMode ? "none" : "";
-  ["category", "direction", "sound", "textmode", "rateEs", "rateEn"]
+  ["category", "direction", "sound", "textmode", "pron", "rateEs", "rateEn"]
     .forEach(id => { $(id).style.display = vocabMode ? "none" : ""; });
   $("modeVocab").classList.toggle("active", vocabMode);
   if (vocabMode) {
@@ -2106,6 +2109,7 @@ function render() {
     ? "75% EN→ES, 25% ES→EN — click to fix the direction"
     : "Click to change direction";
   $("sound").textContent = autoSay ? "🔊 auto" : "🔇 manual";
+  $("pron").textContent = pronOn ? "🎤 on" : "🎤 off";
   $("textmode").textContent = scaffold === "texto" ? "📖 text" : scaffold === "audio" ? "🎧 audio" : "🎓 auto";
   $("rateEs").textContent = "ES " + rates.es + "×";
   $("rateEn").textContent = "EN " + rates.en + "×";
@@ -2409,6 +2413,13 @@ $("direction").addEventListener("click", () => {
   dir = dir === "mix" ? "en-es" : dir === "en-es" ? "es-en" : "mix";
   localStorage.setItem("chuleta-dir2", dir);
   flipped = false; peeked = false; resetSpeech(); rollDir(); render();
+});
+
+$("pron").addEventListener("click", () => {
+  pronOn = !pronOn;
+  localStorage.setItem("chuleta-pron", pronOn ? "1" : "0");
+  if (!pronOn) resetSpeech();
+  render();
 });
 
 $("sound").addEventListener("click", () => {
