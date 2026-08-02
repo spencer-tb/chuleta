@@ -1,12 +1,13 @@
 // Network-first with cache fallback for the app shell (deck edits show up
 // immediately when online), cache-first for audio clips (content-addressed by
 // text hash, so effectively immutable — and instant on replay).
-const CACHE = "chuleta-v4";
+const CACHE = "chuleta-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./phonemes.json",
+  "./vocab.json",
   "./icon-192.png",
   "./icon-512.png",
   "./apple-touch-icon.png",

@@ -224,6 +224,41 @@
   .microw button.rec { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
   .micstatus { font-size: 0.75rem; color: var(--ink-soft); }
 
+  .vocab { display: flex; flex-direction: column; gap: 0.9rem; }
+  .vocab[hidden] { display: none; }
+  .vocab-head { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
+  .vocab-head b { color: var(--ink); }
+  .vocab input {
+    font: inherit;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .vrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.2rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.95rem;
+  }
+  .vrow .rank { color: var(--ink-soft); font-size: 0.72rem; min-width: 2.2rem;
+                font-variant-numeric: tabular-nums; }
+  .vrow .w { font-weight: 600; min-width: 7.5rem; }
+  .vrow .g { color: var(--ink-soft); flex: 1; }
+  .vrow button {
+    font: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+  }
+  .vrow .know { font-size: 0.9rem; opacity: 0.45; }
+  .vrow.known .know { opacity: 1; }
+  .vrow.known .w { color: var(--good); }
+
   .judge { display: flex; gap: 0.75rem; justify-content: center; min-height: 3rem; }
   .judge button {
     font: inherit;
@@ -296,6 +331,7 @@
     <div class="seg">
       <button id="modeStudy" class="active">Study</button>
       <button id="modeBrowse">Browse</button>
+      <button id="modeVocab">Vocab</button>
     </div>
     <select id="category" title="Category"></select>
     <button id="direction" title="Change direction">ES → EN</button>
@@ -339,6 +375,14 @@
     <button id="mic">🎤 say it (m)</button>
     <span class="micstatus" id="micStatus"></span>
   </div>
+
+  <section class="vocab" id="vocabPanel" hidden>
+    <p class="vocab-head">The highest-frequency spoken words — this list covers
+      <b>≈80%</b> of everyday Spanish. Mark what you know:
+      <b id="vocabKnown">0</b> known · ≈<b id="vocabCov">0%</b> of speech</p>
+    <input type="search" id="vocabSearch" placeholder="search word or meaning…">
+    <div id="vocabList"></div>
+  </section>
 
   <div class="judge hidden" id="judge">
     <button class="yes" id="correct">Correct ✓</button>
@@ -1945,6 +1989,7 @@ function buildBrowse() {
 function cardById(id) { return DECK.find(c => c.id === id); }
 
 function currentCard() {
+  if (mode === "vocab") return null;
   if (mode === "study") return queue.length ? cardById(queue[0]) : null;
   if (!browseOrder.length) return null;
   browseIdx = ((browseIdx % browseOrder.length) + browseOrder.length) % browseOrder.length;
@@ -2040,6 +2085,21 @@ function renderStats() {
 
 function render() {
   renderStats();
+  const vocabMode = mode === "vocab";
+  $("vocabPanel").hidden = !vocabMode;
+  document.querySelector(".card-stage").style.display = vocabMode ? "none" : "";
+  document.querySelector(".progress").style.display = vocabMode ? "none" : "";
+  ["category", "direction", "sound", "textmode", "rateEs", "rateEn"]
+    .forEach(id => { $(id).style.display = vocabMode ? "none" : ""; });
+  $("modeVocab").classList.toggle("active", vocabMode);
+  if (vocabMode) {
+    $("modeStudy").classList.remove("active");
+    $("modeBrowse").classList.remove("active");
+    $("judge").classList.add("hidden");
+    $("microw").classList.add("hidden");
+    $("nav").classList.add("hidden");
+    return;
+  }
   $("direction").textContent =
     dir === "mix" ? "Mixed 🎲" : dir === "es-en" ? "ES → EN" : "EN → ES";
   $("direction").title = dir === "mix"
@@ -2194,9 +2254,11 @@ function setMode(m) {
   flipped = false;
   peeked = false;
   resetSpeech();
-  if (m === "study") buildQueue(); else buildBrowse();
+  if (m === "study") buildQueue();
+  else if (m === "browse") buildBrowse();
   rollDir();
   render();
+  if (m === "vocab") renderVocab();
 }
 
 // Push-to-talk on touch screens: hold the card to record (EN→ES), release
@@ -2263,6 +2325,77 @@ $("next").addEventListener("click", () => move(1));
 $("prev").addEventListener("click", () => move(-1));
 $("modeStudy").addEventListener("click", () => setMode("study"));
 $("modeBrowse").addEventListener("click", () => setMode("browse"));
+$("modeVocab").addEventListener("click", () => setMode("vocab"));
+
+// ---- Vocab: the top ~750 spoken words (≈80% of everyday speech) ----
+// Known-word marks live in localStorage; coverage estimate weights each word
+// by 1/rank (Zipf) and scales so the whole list ≈ 80% of spoken Spanish.
+let VOCAB = null;
+let vocabKnown = JSON.parse(localStorage.getItem("chuleta-vocab") || "{}");
+let vocabBuilt = false;
+if (typeof fetch !== "undefined") {
+  fetch("vocab.json").then(r => r.json())
+    .then(j => { VOCAB = j; if (mode === "vocab") renderVocab(); })
+    .catch(() => {});
+}
+
+function vocabCoverage() {
+  if (!VOCAB) return 0;
+  let h = 0, k = 0;
+  VOCAB.forEach(([w], i) => {
+    const z = 1 / (i + 1);
+    h += z;
+    if (vocabKnown[w]) k += z;
+  });
+  return 80 * k / h;
+}
+
+function playVocab(word) {
+  if (player) player.pause();
+  const a = new Audio("audio/vocab/" + fnv1a(word) + ".mp3");
+  a.onerror = () => speak(word, "es");
+  player = a;
+  a.play().catch(() => speak(word, "es"));
+}
+
+function vocabHeader() {
+  const n = Object.keys(vocabKnown).filter(w => vocabKnown[w]).length;
+  $("vocabKnown").textContent = n;
+  $("vocabCov").textContent = vocabCoverage().toFixed(1) + "%";
+}
+
+function renderVocab(filter) {
+  if (!VOCAB) { $("vocabList").textContent = "loading…"; return; }
+  const q = (filter || "").toLowerCase();
+  vocabHeader();
+  const frag = document.createDocumentFragment();
+  VOCAB.forEach(([w, g], i) => {
+    if (q && !w.toLowerCase().includes(q) && !g.toLowerCase().includes(q)) return;
+    const row = document.createElement("div");
+    row.className = "vrow" + (vocabKnown[w] ? " known" : "");
+    row.innerHTML = '<span class="rank">' + (i + 1) + '</span>' +
+      '<span class="w"></span><span class="g"></span>' +
+      '<button class="hear" title="Listen">🔊</button>' +
+      '<button class="know" title="I know this word">✓</button>';
+    row.children[1].textContent = w;
+    row.children[2].textContent = g;
+    row.querySelector(".hear").addEventListener("click", () => playVocab(w));
+    row.querySelector(".know").addEventListener("click", () => {
+      vocabKnown[w] = !vocabKnown[w];
+      if (!vocabKnown[w]) delete vocabKnown[w];
+      localStorage.setItem("chuleta-vocab", JSON.stringify(vocabKnown));
+      row.classList.toggle("known", !!vocabKnown[w]);
+      vocabHeader();
+    });
+    frag.appendChild(row);
+  });
+  const list = $("vocabList");
+  list.textContent = "";
+  list.appendChild(frag);
+  vocabBuilt = true;
+}
+
+$("vocabSearch").addEventListener("input", e => renderVocab(e.target.value));
 
 $("shuffle").addEventListener("click", () => {
   for (let i = browseOrder.length - 1; i > 0; i--) {
@@ -2369,7 +2502,7 @@ document.addEventListener("keydown", e => {
   else if (e.key === "m") micToggle();
 });
 
-setMode("study");
+setMode(location.hash === "#vocab" ? "vocab" : "study");
 
 // Offline support when served over http(s); skipped for file:// so
 // double-clicking the file keeps working like before.
