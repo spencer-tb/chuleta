@@ -1013,11 +1013,11 @@ function speak(text, lang) {
 }
 if ("speechSynthesis" in window) speechSynthesis.getVoices(); // warm up async voice list
 
-function playClip(card, lang) {
+function playClip(card, lang, rateOverride) {
   if (player) player.pause();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
   const a = new Audio("audio/" + lang + "/" + fnv1a(card.es) + ".mp3");
-  a.playbackRate = rates[lang];
+  a.playbackRate = rateOverride || rates[lang];
   a.chLang = lang;
   if ("preservesPitch" in a) a.preservesPitch = true;
   const fallback = () => speak(lang === "es" ? card.es : card.en, lang);
@@ -1055,6 +1055,8 @@ function audioOnlyNow(card) {
 
 function maybeAutoPlay(card) {
   if (!autoSay || mode !== "study" || !card) return;
+  if (ladder && ladder.hash === fnv1a(card.es) &&
+      (flipped || activeDir === "es-en")) return; // ladder owns the Spanish audio
   const key = card.id + ":" + (flipped ? "b" : "f") + ":" + activeDir;
   if (key === lastSpoken) return;
   lastSpoken = key;
@@ -1211,10 +1213,24 @@ function ctcPhones(logits, id2tok, pad) {
 
 async function micToggle() {
   const card = currentCard();
-  if (!canScore(card) || flipped) return;
   if (micState === "rec") { clearTimeout(micTimer); mediaRec.stop(); return; }
   if (micState !== "idle") return;
+  if (flipped) {
+    // On the back the button replays the current ladder step.
+    if (ladder && !ladder.done && card && ladder.hash === fnv1a(card.es)) ladderPlayAndListen();
+    return;
+  }
+  if (!canScore(card)) return;
   startMic(card, false);
+}
+
+// Abandon an in-flight recording without scoring it (card changed, unflipped…).
+function cancelMic() {
+  if (micState === "rec" && mediaRec) {
+    vadNoSpeech = true;
+    clearTimeout(micTimer);
+    mediaRec.stop();
+  }
 }
 
 async function startMic(card, auto) {
@@ -1273,9 +1289,78 @@ function stopVad() {
   if (vadCtx) { vadCtx.close(); vadCtx = null; }
 }
 
+// ---- Repeat ladder: after every reveal, repeat after Bon — slow until the
+// pronunciation passes, then faster, until clean at full speed. Pass bar is
+// 85%, which is what native clips score against this model.
+const LADDER_RATES = [0.7, 0.85, 1];
+const LADDER_PASS = 0.85;
+const LADDER_TRIES = 3;   // misses allowed per speed before moving on anyway
+let ladder = null;        // { hash, step, attempts, done }
+
+function canRepeat(card) {
+  return autoMic && !!card && mode === "study" &&
+    !!(PHONEMES && PHONEMES[fnv1a(card.es)]) &&
+    typeof navigator !== "undefined" && !!navigator.mediaDevices;
+}
+
+// The ladder runs wherever the Spanish is the thing being practised: the back
+// of any card after reveal, and the FRONT of ES→EN cards (Spanish visible —
+// speaking it there spoils nothing).
+function ladderCtx(card) {
+  return !!(card && ladder && ladder.hash === fnv1a(card.es) &&
+    mode === "study" && (flipped || activeDir === "es-en"));
+}
+
+function startLadder(card) {
+  if (!canRepeat(card)) return;
+  const hash = fnv1a(card.es);
+  if (ladder && ladder.hash === hash) return;
+  ladder = { hash, step: 0, attempts: 0, done: false };
+  ladderPlayAndListen();
+}
+
+function ladderPlayAndListen() {
+  const card = currentCard();
+  if (!ladderCtx(card) || ladder.done) return;
+  playClip(card, "es", LADDER_RATES[ladder.step]);
+  player.addEventListener("ended", () => {
+    if (ladderCtx(currentCard()) && !ladder.done && micState === "idle" && currentCard() === card)
+      startMic(card, true);
+  }, { once: true });
+  renderMic();
+}
+
+function ladderAdvance(overall) {
+  if (!ladder || ladder.done) return;
+  if (overall !== null && overall >= LADDER_PASS) {
+    ladder.step += 1;
+    ladder.attempts = 0;
+  } else {
+    ladder.attempts += 1;
+    if (ladder.attempts >= LADDER_TRIES) { ladder.step += 1; ladder.attempts = 0; }
+  }
+  if (ladder.step >= LADDER_RATES.length) {
+    ladder.done = true;
+    renderMic();
+    return;
+  }
+  ladderPlayAndListen();
+}
+
+function resetSpeech() {
+  ladder = null;
+  cancelMic();
+}
+
 function maybeAutoListen(card) {
   if (!autoMic || micState !== "idle" || !card) return;
-  if (mode !== "study" || activeDir !== "en-es" || flipped || !canScore(card)) return;
+  if (mode !== "study" || flipped) return;
+  if (activeDir === "es-en") {
+    // Spanish front: straight into the pronunciation ladder.
+    if (canRepeat(card)) startLadder(card);
+    return;
+  }
+  if (!canScore(card)) return;
   const key = card.id + ":" + activeDir;
   if (key === lastListenKey) return;
   lastListenKey = key;
@@ -1288,6 +1373,8 @@ function maybeAutoListen(card) {
 }
 
 async function scoreRecording(card) {
+  const ladderRep = ladder && !ladder.done && ladder.hash === fnv1a(card.es) &&
+    (flipped || activeDir === "es-en");
   micState = "busy";
   renderMic();
   try {
@@ -1305,6 +1392,7 @@ async function scoreRecording(card) {
   }
   micState = "idle";
   if (!flipped) flip(); else render();
+  if (ladderRep) ladderAdvance(lastScore && !lastScore.error ? lastScore.overall : null);
 }
 
 // Study session
@@ -1397,6 +1485,7 @@ function grade(correct) {
   flipped = false;
   peeked = false;
   lastScore = null;
+  resetSpeech();
   rollDir();
   render();
 }
@@ -1463,14 +1552,18 @@ function render() {
 
   const s = stateOf(card.id);
   const earOnly = audioOnlyNow(card);
-  $("frontText").textContent = earOnly ? "🎧" : firstVariant(card, promptLang()).text;
+  const sc = lastScore && lastScore.hash === fnv1a(card.es) ? lastScore : null;
+  const scoredSpans = s2 => s2.words.map((x, i) =>
+    '<span class="' + (x.score >= 0.8 ? "w-good" : x.score >= 0.55 ? "w-mid" : "w-bad") +
+    '" data-wi="' + i + '">' + x.w + "</span>").join(" ");
+  if (earOnly) $("frontText").textContent = "🎧";
+  else if (activeDir === "es-en" && sc && !sc.error) $("frontText").innerHTML = scoredSpans(sc);
+  else $("frontText").textContent = firstVariant(card, promptLang()).text;
   $("peek").hidden = !earOnly;
-  const sc = lastScore && lastScore.hash === fnv1a(card.es) && activeDir === "en-es" ? lastScore : null;
-  if (sc && !sc.error) {
-    $("backText").innerHTML = sc.words.map((x, i) =>
-      '<span class="' + (x.score >= 0.8 ? "w-good" : x.score >= 0.55 ? "w-mid" : "w-bad") +
-      '" data-wi="' + i + '">' + x.w + "</span>").join(" ");
+  if (sc && !sc.error && activeDir === "en-es") {
+    $("backText").innerHTML = scoredSpans(sc);
     $("backScore").textContent =
+      (ladder && ladder.done && ladder.hash === sc.hash ? "🏆 clean at full speed · " : "") +
       "pronunciation " + Math.round(sc.overall * 100) + "% · tap a word for detail";
   } else {
     $("backText").textContent = firstVariant(card, answerLang()).text;
@@ -1483,11 +1576,13 @@ function render() {
   $("backGloss").innerHTML = (GLOSS[card.es] || "").split(" · ").filter(Boolean)
     .map(pair => {
       const [chunk, meaning] = pair.split(" = ");
-      return "<b>" + chunk + "</b> " + (meaning || "");
-    }).join(" · ");
+      return "<b>" + chunk + "</b>&thinsp;–&thinsp;" + (meaning || "");
+    }).join(" &nbsp;·&nbsp; ");
   $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · new" : "");
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
   $("frontHint").textContent = mode !== "study" ? "tap to flip"
+    : (activeDir === "es-en" && sc && !sc.error && !earOnly)
+      ? "pronunciation " + Math.round(sc.overall * 100) + "% — repeat until it's green"
     : earOnly ? "listen — say the translation out loud"
     : "say it out loud, then flip";
   $("backHint").textContent = mode === "study"
@@ -1504,7 +1599,9 @@ function render() {
 
 function renderMic() {
   const card = currentCard();
-  const show = canScore(card) && !flipped && mode === "study";
+  const ladderOn = ladder && !ladder.done && card && ladder.hash === fnv1a(card.es) &&
+    (flipped || activeDir === "es-en");
+  const show = mode === "study" && (ladderOn || (!flipped && canScore(card)));
   $("microw").classList.toggle("hidden", !show);
   if (!show) return;
   const b = $("mic");
@@ -1512,16 +1609,21 @@ function renderMic() {
   b.textContent = micState === "rec" ? "⏹ stop (m)"
     : micState === "busy" ? (micProgress > 0 && micProgress < 100
         ? "↓ model " + micProgress + "%" : "… scoring")
+    : ladderOn ? "🔁 repeat (m)"
     : "🎤 say it (m)";
   $("micStatus").textContent =
     micState === "busy" && micProgress > 0 && micProgress < 100 ? "one-time download"
     : micState === "rec" && micAuto ? "listening — pause to finish"
+    : ladderOn ? "repeat after Bon · " + LADDER_RATES[ladder.step] + "× · try " +
+      (ladder.attempts + 1) + "/" + LADDER_TRIES
     : "";
 }
 
 function flip() {
   if (!currentCard()) return;
   flipped = !flipped;
+  if (flipped && mode === "study") startLadder(currentCard());
+  else if (!flipped) resetSpeech();
   render();
 }
 
@@ -1529,6 +1631,7 @@ function move(step) {
   if (mode !== "browse") return;
   flipped = false;
   peeked = false;
+  resetSpeech();
   browseIdx += step;
   rollDir();
   render();
@@ -1538,6 +1641,7 @@ function setMode(m) {
   mode = m;
   flipped = false;
   peeked = false;
+  resetSpeech();
   if (m === "study") buildQueue(); else buildBrowse();
   rollDir();
   render();
@@ -1556,13 +1660,13 @@ $("shuffle").addEventListener("click", () => {
     const j = Math.floor(Math.random() * (i + 1));
     [browseOrder[i], browseOrder[j]] = [browseOrder[j], browseOrder[i]];
   }
-  browseIdx = 0; flipped = false; peeked = false; rollDir(); render();
+  browseIdx = 0; flipped = false; peeked = false; resetSpeech(); rollDir(); render();
 });
 
 $("direction").addEventListener("click", () => {
   dir = dir === "mix" ? "en-es" : dir === "en-es" ? "es-en" : "mix";
   localStorage.setItem("chuleta-dir2", dir);
-  flipped = false; peeked = false; rollDir(); render();
+  flipped = false; peeked = false; resetSpeech(); rollDir(); render();
 });
 
 $("sound").addEventListener("click", () => {
