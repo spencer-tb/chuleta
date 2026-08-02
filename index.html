@@ -220,6 +220,9 @@
   .judge .yes:hover { background: var(--good); color: #fff; }
   .judge .no { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
   .judge .no:hover { background: var(--bad); color: #fff; }
+  .judge button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .judge .yes:disabled:hover { background: var(--good-soft); color: var(--good); }
+  .judge .no:disabled:hover { background: var(--bad-soft); color: var(--bad); }
   .judge.hidden { visibility: hidden; }
 
   .nav { display: flex; justify-content: space-between; align-items: center; min-height: 2.2rem; }
@@ -1233,10 +1236,45 @@ function cancelMic() {
   }
 }
 
+// One persistent stream: re-acquiring the mic per rep costs 200–500ms and
+// flickers the OS indicator. Released when the tab is hidden.
+let micStream = null;
+async function getMicStream() {
+  if (micStream && micStream.getTracks().some(t => t.readyState === "live")) return micStream;
+  micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  return micStream;
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+    micStream = null;
+  }
+});
+
+// Short "start speaking now" cue. Recording starts just after it so the tone
+// never lands in the scored audio.
+let beepCtx = null;
+function beep() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    beepCtx ||= new AC();
+    if (beepCtx.state === "suspended") beepCtx.resume();
+    const o = beepCtx.createOscillator(), g = beepCtx.createGain();
+    o.frequency.value = 880;
+    g.gain.setValueAtTime(0.001, beepCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.25, beepCtx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, beepCtx.currentTime + 0.14);
+    o.connect(g);
+    g.connect(beepCtx.destination);
+    o.start();
+    o.stop(beepCtx.currentTime + 0.15);
+  } catch {}
+}
+
 async function startMic(card, auto) {
   if (micState !== "idle") return;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await getMicStream();
     micChunks = [];
     vadNoSpeech = false;
     micAuto = auto;
@@ -1244,10 +1282,11 @@ async function startMic(card, auto) {
     mediaRec.ondataavailable = e => micChunks.push(e.data);
     mediaRec.onstop = () => {
       stopVad();
-      stream.getTracks().forEach(t => t.stop());
       if (vadNoSpeech) { vadNoSpeech = false; micState = "idle"; renderMic(); }
       else scoreRecording(card);
     };
+    beep();
+    await new Promise(r => setTimeout(r, 170));
     mediaRec.start();
     micState = "rec";
     clearTimeout(micTimer);
@@ -1278,7 +1317,7 @@ function startVad(stream) {
     rms = Math.sqrt(rms / buf.length);
     const now = Date.now();
     if (rms > 0.012) { spoke = true; lastVoice = now; }
-    if (spoke && now - lastVoice > 1100) mediaRec.stop();
+    if (spoke && now - lastVoice > 900) mediaRec.stop();
     else if (!spoke && now - t0 > 6000) { vadNoSpeech = true; mediaRec.stop(); }
   }, 100);
 }
@@ -1315,7 +1354,7 @@ function startLadder(card) {
   if (!canRepeat(card)) return;
   const hash = fnv1a(card.es);
   if (ladder && ladder.hash === hash) return;
-  ladder = { hash, step: 0, attempts: 0, done: false };
+  ladder = { hash, step: 0, attempts: 0, fullTries: 0, cleared: false, done: false };
   ladderPlayAndListen();
 }
 
@@ -1330,21 +1369,36 @@ function ladderPlayAndListen() {
   renderMic();
 }
 
-function ladderAdvance(overall) {
+// The card is "cleared" only when a full-speed (1x) attempt has every word at
+// least orange (>= 0.55) — grading stays locked until then. Six full-speed
+// tries without clearing unlocks anyway so a bad mic can't trap a session.
+function ladderAdvance(score) {
   if (!ladder || ladder.done) return;
-  if (overall !== null && overall >= LADDER_PASS) {
+  const okScore = score && !score.error;
+  const atFull = ladder.step === LADDER_RATES.length - 1;
+  if (atFull) {
+    ladder.fullTries += 1;
+    if (okScore && score.words.every(w => w.score >= 0.55)) ladder.cleared = true;
+    if (ladder.cleared || ladder.fullTries >= 6) {
+      ladder.done = true;
+      render();
+      return;
+    }
+  } else if (okScore && score.overall >= LADDER_PASS) {
     ladder.step += 1;
     ladder.attempts = 0;
   } else {
     ladder.attempts += 1;
     if (ladder.attempts >= LADDER_TRIES) { ladder.step += 1; ladder.attempts = 0; }
   }
-  if (ladder.step >= LADDER_RATES.length) {
-    ladder.done = true;
-    renderMic();
-    return;
-  }
   ladderPlayAndListen();
+}
+
+// Grading is locked while a repeat ladder is unfinished on this card.
+function gradeLocked() {
+  const card = currentCard();
+  if (!card || mode !== "study" || !flipped || !canRepeat(card)) return false;
+  return !(ladder && ladder.hash === fnv1a(card.es) && ladder.done);
 }
 
 function resetSpeech() {
@@ -1392,7 +1446,7 @@ async function scoreRecording(card) {
   }
   micState = "idle";
   if (!flipped) flip(); else render();
-  if (ladderRep) ladderAdvance(lastScore && !lastScore.error ? lastScore.overall : null);
+  if (ladderRep) ladderAdvance(lastScore);
 }
 
 // Study session
@@ -1461,6 +1515,7 @@ function nextDueInfo() {
 // in this same session; clearing it then schedules it for tomorrow.
 function grade(correct) {
   if (mode !== "study" || !queue.length || !flipped) return;
+  if (gradeLocked()) return;
   const id = queue.shift();
   const isNew = !srs[id];
   const s = stateOf(id);
@@ -1527,6 +1582,9 @@ function render() {
   if (mode === "study") {
     $("bar").style.width = sessionTotal ? (sessionDone / sessionTotal * 100) + "%" : "0%";
     $("judge").classList.toggle("hidden", !card || !flipped);
+    const locked = gradeLocked();
+    $("correct").disabled = locked;
+    $("wrong").disabled = locked;
   } else {
     $("bar").style.width = "0%";
     $("judge").classList.add("hidden");
@@ -1563,7 +1621,8 @@ function render() {
   if (sc && !sc.error && activeDir === "en-es") {
     $("backText").innerHTML = scoredSpans(sc);
     $("backScore").textContent =
-      (ladder && ladder.done && ladder.hash === sc.hash ? "🏆 clean at full speed · " : "") +
+      (ladder && ladder.hash === sc.hash && ladder.cleared ? "🏆 clean at full speed · "
+        : ladder && ladder.hash === sc.hash && ladder.done ? "↷ moving on, it'll come back · " : "") +
       "pronunciation " + Math.round(sc.overall * 100) + "% · tap a word for detail";
   } else {
     $("backText").textContent = firstVariant(card, answerLang()).text;
@@ -1585,10 +1644,10 @@ function render() {
       ? "pronunciation " + Math.round(sc.overall * 100) + "% — repeat until it's green"
     : earOnly ? "listen — say the translation out loud"
     : "say it out loud, then flip";
-  $("backHint").textContent = mode === "study"
-    ? "repeat it out loud · if you got it: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY)
+  $("backHint").textContent = mode !== "study" ? ""
+    : gradeLocked() ? "🔒 repeat until every word is at least orange at 1× — then grade"
+    : "repeat it out loud · if you got it: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY);
       // projected with pre-recovery ease; off by at most a day on long intervals
-    : "";
   $("sayFront").hidden = false;
   $("sayBack").hidden = false;
   cardEl.classList.toggle("flipped", flipped);
