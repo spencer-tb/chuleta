@@ -333,7 +333,6 @@
       <button id="modeBrowse">Browse</button>
       <button id="modeVocab">Vocab</button>
     </div>
-    <select id="category" title="Category"></select>
     <button id="direction" title="Change direction">ES → EN</button>
     <button id="sound" title="Auto-play audio">🔊 auto</button>
     <button id="pron" title="Pronunciation practice: repeat ladder, mic scoring, auto-grading">🎤 on</button>
@@ -622,7 +621,7 @@ const DECK = [
   { es: "Él me ayudó", en: "He helped me", cat: "Flat & travel" },
   { es: "Me quedaré con él", en: "I will stay with him", cat: "Flat & travel" },
   { es: "Él compró el apartamento recientemente", en: "He bought the apartment recently", cat: "Flat & travel" },
-  { es: "Hay un metro cerca", en: "There's a metro station nearby", cat: "Flat & travel",
+  { es: "Hay una parada de metro cerca", en: "There's a metro stop nearby", cat: "Flat & travel",
     note: "cerca = near" },
   { es: "Estudié en Edimburgo", en: "I studied in Edinburgh", cat: "Flat & travel",
     note: "Edimburgo = Edinburgh" },
@@ -986,7 +985,7 @@ const DECK = [
     note: "preocupado / preocupada = worried" },
   { es: "Tranquilo, no pasa nada", en: "Relax, it's fine", cat: "Emotions",
     note: "\"tranquilo\" alone = \"relax, it's fine\" — tranquilo / tranquila = calm / relaxed" },
-  { es: "Estoy estresado con el trabajo", en: "I'm stressed with work", cat: "Emotions",
+  { es: "Estoy estresado por el trabajo", en: "I'm stressed about work", cat: "Emotions",
     note: "estresado / estresada = stressed" },
   { es: "Estoy aburrido, ¿salimos?", en: "I'm bored, shall we go out?", cat: "Emotions",
     note: "aburrido / aburrida = bored (estar) / boring (ser)" },
@@ -1015,6 +1014,134 @@ const DECK = [
     note: "los sentimientos = feelings" },
   { es: "Soy una persona sensible", en: "I'm a sensitive person", cat: "Emotions",
     note: "false friend: English \"sensible\" is sensato — sensible = sensitive" },
+  // Everyday Barcelona — the high-frequency daily phrases
+  { es: "¡Buenos días!", en: "Good morning!", cat: "Everyday" },
+  { es: "¡Buenas tardes!", en: "Good afternoon!", cat: "Everyday" },
+  { es: "¡Buenas noches!", en: "Good evening / good night!", cat: "Everyday" },
+  { es: "¡Hasta mañana!", en: "See you tomorrow!", cat: "Everyday" },
+  { es: "¡Nos vemos!", en: "See you!", cat: "Everyday" },
+  { es: "¿Qué tal? ¿Todo bien?", en: "How's it going? All good?", cat: "Everyday" },
+  { es: "Encantado de conocerte", en: "Nice to meet you", cat: "Everyday",
+    note: "encantada if you use feminine forms" },
+  { es: "Igualmente", en: "Likewise", cat: "Everyday" },
+  { es: "¿De dónde eres?", en: "Where are you from?", cat: "Everyday" },
+  { es: "Soy de Escocia", en: "I'm from Scotland", cat: "Everyday" },
+  { es: "Acabo de llegar", en: "I just arrived", cat: "Everyday",
+    note: "acabar de + infinitive = to have just done" },
+  { es: "Estoy aprendiendo español", en: "I'm learning Spanish", cat: "Everyday" },
+  { es: "¿Hablas inglés?", en: "Do you speak English?", cat: "Everyday" },
+  { es: "Hablo un poco de español", en: "I speak a little Spanish", cat: "Everyday" },
+  { es: "¿Puedes hablar más despacio?", en: "Can you speak more slowly?", cat: "Everyday" },
+  { es: "Perdona, no te he entendido", en: "Sorry, I didn't understand you", cat: "Everyday",
+    note: "Spain perfect tense — just happened" },
+  { es: "¿Me lo puedes escribir?", en: "Can you write it down for me?", cat: "Everyday" },
+  { es: "¿Qué me recomiendas?", en: "What do you recommend?", cat: "Everyday" },
+  { es: "Un café con leche, por favor", en: "A coffee with milk, please", cat: "Everyday" },
+  { es: "Un cortado, porfa", en: "A cortado, pls", cat: "Everyday",
+    note: "espresso with a splash of milk — the Barcelona order" },
+  { es: "Una caña, por favor", en: "A small draft beer, please", cat: "Everyday",
+    note: "la caña — the default beer order in Spain" },
+  { es: "Una copa de vino tinto", en: "A glass of red wine", cat: "Everyday" },
+  { es: "Un vaso de agua del grifo", en: "A glass of tap water", cat: "Everyday" },
+  { es: "¿Me pones otra?", en: "Can I get another one?", cat: "Everyday",
+    note: "poner is THE bar verb: ¿me pones...?" },
+  { es: "¿Nos traes la carta?", en: "Can you bring us the menu?", cat: "Everyday",
+    note: "la carta = menu; el menú = fixed-price deal" },
+  { es: "¿Qué lleva este plato?", en: "What's in this dish?", cat: "Everyday",
+    note: "llevar again — dishes \"carry\" ingredients" },
+  { es: "Soy alérgico a los frutos secos", en: "I'm allergic to nuts", cat: "Everyday",
+    note: "frutos secos = tree nuts, not dried fruit" },
+  { es: "Para mí, la ensalada", en: "The salad for me", cat: "Everyday" },
+  { es: "¿Algo más?", en: "Anything else?", cat: "Everyday" },
+  { es: "Nada más, gracias", en: "Nothing else, thanks", cat: "Everyday" },
+  { es: "La cuenta, por favor", en: "The bill, please", cat: "Everyday" },
+  { es: "¿Puedo pagar con tarjeta?", en: "Can I pay by card?", cat: "Everyday" },
+  { es: "¿Está libre esta mesa?", en: "Is this table free?", cat: "Everyday" },
+  { es: "¿Tenéis mesa para dos?", en: "Do you have a table for two?", cat: "Everyday",
+    note: "tenéis — vosotros, everywhere in Spain" },
+  { es: "Está buenísimo", en: "It's delicious", cat: "Everyday",
+    note: "-ísimo = superlative: bueno → buenísimo" },
+  { es: "¡Que aproveche!", en: "Enjoy your meal!", cat: "Everyday",
+    note: "said to anyone eating — strangers included" },
+  { es: "¿Cuánto cuesta?", en: "How much does it cost?", cat: "Everyday" },
+  { es: "¿Cuánto es todo?", en: "How much is everything?", cat: "Everyday" },
+  { es: "¿Tenéis esto en otra talla?", en: "Do you have this in another size?", cat: "Everyday",
+    note: "la talla = clothing size" },
+  { es: "Solo estoy mirando, gracias", en: "I'm just looking, thanks", cat: "Everyday" },
+  { es: "Me lo llevo", en: "I'll take it", cat: "Everyday",
+    note: "shop idiom — lit. \"I carry it away\"" },
+  { es: "¿Me das una bolsa?", en: "Can I get a bag?", cat: "Everyday" },
+  { es: "¿A qué hora cerráis?", en: "What time do you close?", cat: "Everyday",
+    note: "cerráis — vosotros" },
+  { es: "¿A qué hora abrís?", en: "What time do you open?", cat: "Everyday" },
+  { es: "Perdona, ¿dónde está el metro?", en: "Excuse me, where's the metro?", cat: "Everyday",
+    note: "perdona — the standard attention-getter" },
+  { es: "¿Cómo llego al centro?", en: "How do I get to the center?", cat: "Everyday" },
+  { es: "¿Está lejos de aquí?", en: "Is it far from here?", cat: "Everyday" },
+  { es: "Está a diez minutos andando", en: "It's ten minutes on foot", cat: "Everyday",
+    note: "está a + time/distance" },
+  { es: "Todo recto y luego a la izquierda", en: "Straight ahead, then left", cat: "Everyday" },
+  { es: "La segunda a la derecha", en: "The second street on the right", cat: "Everyday" },
+  { es: "¿Qué línea va a Sants?", en: "Which line goes to Sants?", cat: "Everyday",
+    note: "Sants — Barcelona's main station" },
+  { es: "¿Dónde está la parada de bus?", en: "Where's the bus stop?", cat: "Everyday" },
+  { es: "Me he perdido", en: "I'm lost", cat: "Everyday",
+    note: "perderse; Spain perfect tense" },
+  { es: "¿Me puedes ayudar?", en: "Can you help me?", cat: "Everyday" },
+  { es: "Son las cinco y media", en: "It's half past five", cat: "Everyday" },
+  { es: "A las ocho en punto", en: "At eight o'clock sharp", cat: "Everyday" },
+  { es: "¿A qué hora quedamos?", en: "What time shall we meet?", cat: "Everyday" },
+  { es: "Llego en cinco minutos", en: "I'll be there in five minutes", cat: "Everyday" },
+  { es: "Llego tarde, lo siento", en: "I'm running late, sorry", cat: "Everyday" },
+  { es: "No hay prisa", en: "No rush", cat: "Everyday" },
+  { es: "De nada, un placer", en: "You're welcome, a pleasure", cat: "Everyday" },
+  { es: "Perdona el retraso", en: "Sorry for the delay", cat: "Everyday" },
+  { es: "No te preocupes", en: "Don't worry", cat: "Everyday" },
+  { es: "¡Qué bien!", en: "Great!", cat: "Everyday" },
+  { es: "¡Qué pena!", en: "What a shame!", cat: "Everyday" },
+  { es: "¡Qué fuerte!", en: "No way! / That's wild!", cat: "Everyday",
+    note: "all-purpose Spain reaction to surprising news" },
+  { es: "¡Genial, gracias!", en: "Awesome, thanks!", cat: "Everyday" },
+  { es: "Vale, perfecto", en: "OK, perfect", cat: "Everyday",
+    note: "vale — Spain's universal OK" },
+  { es: "Venga, va", en: "Come on then / alright", cat: "Everyday",
+    note: "pure Spain filler-agreement" },
+  { es: "¡Venga, hasta luego!", en: "Right, see you!", cat: "Everyday",
+    note: "how every Spanish phone call ends" },
+  { es: "Un momento, por favor", en: "One moment, please", cat: "Everyday" },
+  { es: "¿Puedo pasar?", en: "May I come in / get through?", cat: "Everyday" },
+  { es: "Pasa, pasa", en: "Come in, come in", cat: "Everyday",
+    note: "doubling = warmth" },
+  { es: "¿Te importa si me siento aquí?", en: "Do you mind if I sit here?", cat: "Everyday" },
+  { es: "Con permiso", en: "Excuse me (passing through)", cat: "Everyday" },
+  { es: "Lo siento mucho", en: "I'm very sorry", cat: "Everyday" },
+  { es: "No era mi intención", en: "I didn't mean to", cat: "Everyday" },
+  { es: "¿Seguro?", en: "Are you sure?", cat: "Everyday" },
+  { es: "Depende", en: "It depends", cat: "Everyday" },
+  { es: "Creo que no", en: "I don't think so", cat: "Everyday" },
+  { es: "¡Claro que sí!", en: "Of course!", cat: "Everyday" },
+  { es: "Ni idea", en: "No idea", cat: "Everyday" },
+  { es: "Da igual", en: "It doesn't matter / whatever", cat: "Everyday" },
+  { es: "Como quieras", en: "Whatever you like", cat: "Everyday" },
+  { es: "Toma", en: "Here you go", cat: "Everyday",
+    note: "when handing something over" },
+  { es: "¿Me dejas tu boli?", en: "Can I borrow your pen?", cat: "Everyday",
+    note: "dejar = to lend here; el boli = pen (Spain)" },
+  { es: "¿Cómo se llama esto en español?", en: "What's this called in Spanish?", cat: "Everyday" },
+  { es: "¿Está bien así?", en: "Is it OK like this?", cat: "Everyday" },
+  { es: "Ahora vuelvo", en: "I'll be right back", cat: "Everyday" },
+  { es: "Ya voy", en: "I'm coming", cat: "Everyday" },
+  { es: "¡Cuidado!", en: "Watch out!", cat: "Everyday" },
+  { es: "Tranquilo, ya está", en: "It's OK, it's over now", cat: "Everyday",
+    note: "ya está — done/that's it" },
+  { es: "¿Qué significa \"guiri\"?", en: "What does \"guiri\" mean?", cat: "Everyday",
+    note: "guiri — affectionate-ish slang for foreign tourist. You." },
+  { es: "¿Vamos a la playa?", en: "Shall we go to the beach?", cat: "Everyday" },
+  { es: "Hace mucho calor hoy", en: "It's really hot today", cat: "Everyday",
+    note: "weather uses hacer" },
+  { es: "Está lloviendo", en: "It's raining", cat: "Everyday" },
+  { es: "¿Quedamos en la plaza?", en: "Shall we meet in the square?", cat: "Everyday" },
+  { es: "Te espero fuera", en: "I'll wait for you outside", cat: "Everyday" },
 ];
 
 // Card identity = Spanish text, so progress survives reordering/appending cards.
@@ -1170,6 +1297,8 @@ let srs = JSON.parse(localStorage.getItem("chuleta-srs") || "{}");
 // One-time migration: word cards became phrase cards (2026-08); review
 // history follows the rename.
 const MIGRATE = {
+  "Hay un metro cerca": "Hay una parada de metro cerca",
+  "Estoy estresado con el trabajo": "Estoy estresado por el trabajo",
   "(Yo) trabajo": "Trabajo desde casa",
   "hacer yoga": "Hoy voy a hacer yoga",
   "música en directo": "Esta noche hay música en directo",
@@ -1370,8 +1499,7 @@ function saveSrs() { localStorage.setItem("chuleta-srs", JSON.stringify(srs)); }
 // 25% ES→EN recognition); activeDir is the roll for the card on screen.
 let dir = localStorage.getItem("chuleta-dir2") || "mix";
 let activeDir = "en-es";
-let mode = "study";           // "study" | "browse"
-let category = "All";
+let mode = "study";           // "study" | "browse" | "vocab"
 let flipped = false;
 
 function rollDir() {
@@ -1947,7 +2075,7 @@ let browseOrder = [];
 let browseIdx = 0;
 
 function filteredDeck() {
-  return DECK.filter(c => category === "All" || c.cat === category);
+  return DECK;
 }
 
 // Overtime queue: weakest memories first (soonest due), 20 at a time,
@@ -2092,7 +2220,7 @@ function render() {
   $("vocabPanel").hidden = !vocabMode;
   document.querySelector(".card-stage").style.display = vocabMode ? "none" : "";
   document.querySelector(".progress").style.display = vocabMode ? "none" : "";
-  ["category", "direction", "sound", "textmode", "pron", "rateEs", "rateEn"]
+  ["direction", "sound", "textmode", "pron", "rateEs", "rateEn"]
     .forEach(id => { $(id).style.display = vocabMode ? "none" : ""; });
   $("modeVocab").classList.toggle("active", vocabMode);
   if (vocabMode) {
@@ -2189,9 +2317,9 @@ function render() {
       const [chunk, meaning] = pair.split(" = ");
       return "<b>" + chunk + "</b>&thinsp;–&thinsp;" + (meaning || "");
     }).join(" &nbsp;·&nbsp; ");
-  $("frontCat").textContent = card.cat +
-    (mode === "study" && s.reps === 0 ? " · new" : "") +
-    (overtime ? " · extra" : "");
+  $("frontCat").textContent =
+    [mode === "study" && s.reps === 0 ? "new" : "", overtime ? "extra" : ""]
+      .filter(Boolean).join(" · ");
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
   $("frontHint").textContent = mode !== "study" ? "tap to flip"
     : earOnly ? "listen — say the translation out loud"
@@ -2487,15 +2615,8 @@ $("reset").addEventListener("click", () => {
   setMode(mode);
 });
 
-const cats = ["All", ...new Set(DECK.map(c => c.cat))];
-$("category").innerHTML = cats.map(c => `<option>${c}</option>`).join("");
-$("category").addEventListener("change", e => {
-  category = e.target.value;
-  setMode(mode);
-});
-
 document.addEventListener("keydown", e => {
-  if (e.target.tagName === "SELECT") return;
+  if (["SELECT", "INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
   else if (e.key === "1") grade(true);
   else if (e.key === "2") grade(false);

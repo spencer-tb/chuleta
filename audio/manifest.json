@@ -491,9 +491,9 @@
   "es": "Él compró el apartamento recientemente",
   "en": "He bought the apartment recently"
  },
- "0a90f44b": {
-  "es": "Hay un metro cerca",
-  "en": "There's a metro station nearby"
+ "667c683c": {
+  "es": "Hay una parada de metro cerca",
+  "en": "There's a metro stop nearby"
  },
  "1324af06": {
   "es": "Estudié en Edimburgo",
@@ -1315,9 +1315,9 @@
   "es": "Tranquilo, no pasa nada",
   "en": "Relax, it's fine"
  },
- "cbea9267": {
-  "es": "Estoy estresado con el trabajo",
-  "en": "I'm stressed with work"
+ "82526ef0": {
+  "es": "Estoy estresado por el trabajo",
+  "en": "I'm stressed about work"
  },
  "03b28963": {
   "es": "Estoy aburrido, ¿salimos?",
@@ -1374,5 +1374,397 @@
  "0a95a553": {
   "es": "Soy una persona sensible",
   "en": "I'm a sensitive person"
+ },
+ "46a9f9c7": {
+  "es": "¡Buenos días!",
+  "en": "Good morning!"
+ },
+ "b4620b2a": {
+  "es": "¡Buenas tardes!",
+  "en": "Good afternoon!"
+ },
+ "77ed6159": {
+  "es": "¡Buenas noches!",
+  "en": "Good evening / good night!"
+ },
+ "2a44e342": {
+  "es": "¡Hasta mañana!",
+  "en": "See you tomorrow!"
+ },
+ "bc040541": {
+  "es": "¡Nos vemos!",
+  "en": "See you!"
+ },
+ "432c8406": {
+  "es": "¿Qué tal? ¿Todo bien?",
+  "en": "How's it going? All good?"
+ },
+ "03488da3": {
+  "es": "Encantado de conocerte",
+  "en": "Nice to meet you"
+ },
+ "d2759e7c": {
+  "es": "Igualmente",
+  "en": "Likewise"
+ },
+ "9c57963c": {
+  "es": "¿De dónde eres?",
+  "en": "Where are you from?"
+ },
+ "11f066e8": {
+  "es": "Soy de Escocia",
+  "en": "I'm from Scotland"
+ },
+ "27b43ba9": {
+  "es": "Acabo de llegar",
+  "en": "I just arrived"
+ },
+ "828b4d10": {
+  "es": "Estoy aprendiendo español",
+  "en": "I'm learning Spanish"
+ },
+ "6b0bf20f": {
+  "es": "¿Hablas inglés?",
+  "en": "Do you speak English?"
+ },
+ "ebe41632": {
+  "es": "Hablo un poco de español",
+  "en": "I speak a little Spanish"
+ },
+ "212b42e3": {
+  "es": "¿Puedes hablar más despacio?",
+  "en": "Can you speak more slowly?"
+ },
+ "acc7e1dd": {
+  "es": "Perdona, no te he entendido",
+  "en": "Sorry, I didn't understand you"
+ },
+ "b5e09beb": {
+  "es": "¿Me lo puedes escribir?",
+  "en": "Can you write it down for me?"
+ },
+ "6464c3b9": {
+  "es": "¿Qué me recomiendas?",
+  "en": "What do you recommend?"
+ },
+ "a08b100c": {
+  "es": "Un café con leche, por favor",
+  "en": "A coffee with milk, please"
+ },
+ "25cfc720": {
+  "es": "Un cortado, porfa",
+  "en": "A cortado, pls"
+ },
+ "03688a0b": {
+  "es": "Una caña, por favor",
+  "en": "A small draft beer, please"
+ },
+ "479713eb": {
+  "es": "Una copa de vino tinto",
+  "en": "A glass of red wine"
+ },
+ "80b48e44": {
+  "es": "Un vaso de agua del grifo",
+  "en": "A glass of tap water"
+ },
+ "df0868ce": {
+  "es": "¿Me pones otra?",
+  "en": "Can I get another one?"
+ },
+ "988e6984": {
+  "es": "¿Nos traes la carta?",
+  "en": "Can you bring us the menu?"
+ },
+ "e90cc154": {
+  "es": "¿Qué lleva este plato?",
+  "en": "What's in this dish?"
+ },
+ "e44c0214": {
+  "es": "Soy alérgico a los frutos secos",
+  "en": "I'm allergic to nuts"
+ },
+ "2c624962": {
+  "es": "Para mí, la ensalada",
+  "en": "The salad for me"
+ },
+ "a16c38c0": {
+  "es": "¿Algo más?",
+  "en": "Anything else?"
+ },
+ "750b4f53": {
+  "es": "Nada más, gracias",
+  "en": "Nothing else, thanks"
+ },
+ "de19ccc7": {
+  "es": "La cuenta, por favor",
+  "en": "The bill, please"
+ },
+ "8d8da898": {
+  "es": "¿Puedo pagar con tarjeta?",
+  "en": "Can I pay by card?"
+ },
+ "704d9a44": {
+  "es": "¿Está libre esta mesa?",
+  "en": "Is this table free?"
+ },
+ "4458842c": {
+  "es": "¿Tenéis mesa para dos?",
+  "en": "Do you have a table for two?"
+ },
+ "4c5ccdfb": {
+  "es": "Está buenísimo",
+  "en": "It's delicious"
+ },
+ "1dd7a595": {
+  "es": "¡Que aproveche!",
+  "en": "Enjoy your meal!"
+ },
+ "5987ade9": {
+  "es": "¿Cuánto cuesta?",
+  "en": "How much does it cost?"
+ },
+ "50da3376": {
+  "es": "¿Cuánto es todo?",
+  "en": "How much is everything?"
+ },
+ "8d42680c": {
+  "es": "¿Tenéis esto en otra talla?",
+  "en": "Do you have this in another size?"
+ },
+ "fa3cbeac": {
+  "es": "Solo estoy mirando, gracias",
+  "en": "I'm just looking, thanks"
+ },
+ "6cc58ee8": {
+  "es": "Me lo llevo",
+  "en": "I'll take it"
+ },
+ "4117378c": {
+  "es": "¿Me das una bolsa?",
+  "en": "Can I get a bag?"
+ },
+ "09a697e6": {
+  "es": "¿A qué hora cerráis?",
+  "en": "What time do you close?"
+ },
+ "67b4a1e2": {
+  "es": "¿A qué hora abrís?",
+  "en": "What time do you open?"
+ },
+ "03a3f771": {
+  "es": "Perdona, ¿dónde está el metro?",
+  "en": "Excuse me, where's the metro?"
+ },
+ "b4011f03": {
+  "es": "¿Cómo llego al centro?",
+  "en": "How do I get to the center?"
+ },
+ "fb10c7c4": {
+  "es": "¿Está lejos de aquí?",
+  "en": "Is it far from here?"
+ },
+ "3819e3d8": {
+  "es": "Está a diez minutos andando",
+  "en": "It's ten minutes on foot"
+ },
+ "440b2a0d": {
+  "es": "Todo recto y luego a la izquierda",
+  "en": "Straight ahead, then left"
+ },
+ "6b9714d3": {
+  "es": "La segunda a la derecha",
+  "en": "The second street on the right"
+ },
+ "1887191a": {
+  "es": "¿Qué línea va a Sants?",
+  "en": "Which line goes to Sants?"
+ },
+ "4f08a49b": {
+  "es": "¿Dónde está la parada de bus?",
+  "en": "Where's the bus stop?"
+ },
+ "dbdeebe7": {
+  "es": "Me he perdido",
+  "en": "I'm lost"
+ },
+ "5c28ebaf": {
+  "es": "¿Me puedes ayudar?",
+  "en": "Can you help me?"
+ },
+ "871a5ecc": {
+  "es": "Son las cinco y media",
+  "en": "It's half past five"
+ },
+ "41d7ce7c": {
+  "es": "A las ocho en punto",
+  "en": "At eight o'clock sharp"
+ },
+ "7b08acaf": {
+  "es": "¿A qué hora quedamos?",
+  "en": "What time shall we meet?"
+ },
+ "48c39816": {
+  "es": "Llego en cinco minutos",
+  "en": "I'll be there in five minutes"
+ },
+ "2691b1db": {
+  "es": "Llego tarde, lo siento",
+  "en": "I'm running late, sorry"
+ },
+ "c247ce41": {
+  "es": "No hay prisa",
+  "en": "No rush"
+ },
+ "3416b276": {
+  "es": "De nada, un placer",
+  "en": "You're welcome, a pleasure"
+ },
+ "6340412d": {
+  "es": "Perdona el retraso",
+  "en": "Sorry for the delay"
+ },
+ "2e65afb3": {
+  "es": "No te preocupes",
+  "en": "Don't worry"
+ },
+ "0381ab43": {
+  "es": "¡Qué bien!",
+  "en": "Great!"
+ },
+ "10cc30f3": {
+  "es": "¡Qué pena!",
+  "en": "What a shame!"
+ },
+ "e4d242da": {
+  "es": "¡Qué fuerte!",
+  "en": "No way! / That's wild!"
+ },
+ "ea228463": {
+  "es": "¡Genial, gracias!",
+  "en": "Awesome, thanks!"
+ },
+ "c9a8eb55": {
+  "es": "Vale, perfecto",
+  "en": "OK, perfect"
+ },
+ "384be7b7": {
+  "es": "Venga, va",
+  "en": "Come on then / alright"
+ },
+ "5639a843": {
+  "es": "¡Venga, hasta luego!",
+  "en": "Right, see you!"
+ },
+ "eca922dc": {
+  "es": "Un momento, por favor",
+  "en": "One moment, please"
+ },
+ "6cf0a2db": {
+  "es": "¿Puedo pasar?",
+  "en": "May I come in / get through?"
+ },
+ "d19cc9b9": {
+  "es": "Pasa, pasa",
+  "en": "Come in, come in"
+ },
+ "68067a63": {
+  "es": "¿Te importa si me siento aquí?",
+  "en": "Do you mind if I sit here?"
+ },
+ "bf72027c": {
+  "es": "Con permiso",
+  "en": "Excuse me (passing through)"
+ },
+ "39e7f2a0": {
+  "es": "Lo siento mucho",
+  "en": "I'm very sorry"
+ },
+ "a327b538": {
+  "es": "No era mi intención",
+  "en": "I didn't mean to"
+ },
+ "fb912fc6": {
+  "es": "¿Seguro?",
+  "en": "Are you sure?"
+ },
+ "48fa9122": {
+  "es": "Depende",
+  "en": "It depends"
+ },
+ "5e4f6fb4": {
+  "es": "Creo que no",
+  "en": "I don't think so"
+ },
+ "6f4e1f74": {
+  "es": "¡Claro que sí!",
+  "en": "Of course!"
+ },
+ "d9e070d3": {
+  "es": "Ni idea",
+  "en": "No idea"
+ },
+ "e48c8910": {
+  "es": "Da igual",
+  "en": "It doesn't matter / whatever"
+ },
+ "ad700835": {
+  "es": "Como quieras",
+  "en": "Whatever you like"
+ },
+ "b89cb65e": {
+  "es": "Toma",
+  "en": "Here you go"
+ },
+ "356a27f3": {
+  "es": "¿Me dejas tu boli?",
+  "en": "Can I borrow your pen?"
+ },
+ "0d202537": {
+  "es": "¿Cómo se llama esto en español?",
+  "en": "What's this called in Spanish?"
+ },
+ "9863edd1": {
+  "es": "¿Está bien así?",
+  "en": "Is it OK like this?"
+ },
+ "83e0179b": {
+  "es": "Ahora vuelvo",
+  "en": "I'll be right back"
+ },
+ "b60a1e79": {
+  "es": "Ya voy",
+  "en": "I'm coming"
+ },
+ "2a862adc": {
+  "es": "¡Cuidado!",
+  "en": "Watch out!"
+ },
+ "c6c3fd0a": {
+  "es": "Tranquilo, ya está",
+  "en": "It's OK, it's over now"
+ },
+ "505a167c": {
+  "es": "¿Qué significa \"guiri\"?",
+  "en": "What does \"guiri\" mean?"
+ },
+ "f3346dc8": {
+  "es": "¿Vamos a la playa?",
+  "en": "Shall we go to the beach?"
+ },
+ "46c247b9": {
+  "es": "Hace mucho calor hoy",
+  "en": "It's really hot today"
+ },
+ "b3795dbd": {
+  "es": "Está lloviendo",
+  "en": "It's raining"
+ },
+ "a36b3eaa": {
+  "es": "¿Quedamos en la plaza?",
+  "en": "Shall we meet in the square?"
+ },
+ "3419feeb": {
+  "es": "Te espero fuera",
+  "en": "I'll wait for you outside"
  }
 }
