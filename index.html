@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chuleta — Spanish flashcards</title>
+<meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10161d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="chuleta">
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-back: #eef3fa;
+    --ink: #1b2733;
+    --ink-soft: #5a6b7d;
+    --line: #d8dfe7;
+    --accent: #2456a6;
+    --accent-ink: #ffffff;
+    --good: #2e7d52;
+    --good-soft: #e3f1e9;
+    --bad: #b04a3a;
+    --bad-soft: #f7e8e5;
+    --marigold: #e8a13d;
+    --shadow: 0 10px 30px rgba(27, 39, 51, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10161d;
+      --surface: #1a232e;
+      --surface-back: #20304a;
+      --ink: #e9edf2;
+      --ink-soft: #93a3b4;
+      --line: #2c3947;
+      --accent: #6fa8ff;
+      --accent-ink: #0d1723;
+      --good: #5cbd8b;
+      --good-soft: #1d3328;
+      --bad: #e08573;
+      --bad-soft: #3a241f;
+      --marigold: #f0b45c;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  main {
+    width: min(680px, 92vw);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 2rem 0 3rem;
+  }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  h1 {
+    font-family: Charter, "Iowan Old Style", Georgia, serif;
+    font-size: 1.9rem;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  h1 .tag {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    font-weight: 400;
+    margin-left: 0.6rem;
+    letter-spacing: 0;
+  }
+  .stats { font-size: 0.85rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .stats b { color: var(--ink); font-weight: 600; }
+  .stats .learned { color: var(--good); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .controls select, .controls button {
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .controls button:hover, .controls select:hover { border-color: var(--accent); }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; border-radius: 0; background: var(--surface); }
+  .seg button.active { background: var(--accent); color: var(--accent-ink); }
+  .spacer { flex: 1; }
+
+  .card-stage { perspective: 1200px; }
+  .card {
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.45s cubic-bezier(0.3, 0.9, 0.3, 1);
+  }
+  .card.flipped { transform: rotateX(180deg); }
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+  }
+  .face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2.5rem 2rem;
+    gap: 1rem;
+  }
+  .face.back {
+    transform: rotateX(180deg);
+    background: var(--surface-back);
+  }
+  .face .eyebrow {
+    position: absolute;
+    top: 1.1rem;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+  }
+  .face .phrase {
+    font-family: Charter, "Iowan Old Style", Georgia, serif;
+    font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+    line-height: 1.3;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .face .hint {
+    position: absolute;
+    bottom: 1.1rem;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+  .face .note { font-size: 0.9rem; color: var(--ink-soft); max-width: 46ch; }
+  .face .say {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 1.05rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.35rem;
+    opacity: 0.55;
+  }
+  .face .say:hover { opacity: 1; }
+  .face .say[hidden] { display: none; }
+
+  .judge { display: flex; gap: 0.75rem; justify-content: center; min-height: 3rem; }
+  .judge button {
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 0.65rem 1.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .judge .yes { border-color: var(--good); color: var(--good); background: var(--good-soft); }
+  .judge .yes:hover { background: var(--good); color: #fff; }
+  .judge .no { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
+  .judge .no:hover { background: var(--bad); color: #fff; }
+  .judge.hidden { visibility: hidden; }
+
+  .nav { display: flex; justify-content: space-between; align-items: center; min-height: 2.2rem; }
+  .nav button {
+    font: inherit;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0.4rem 0.6rem;
+  }
+  .nav .pos { font-size: 0.85rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .nav.hidden { visibility: hidden; }
+
+  .progress {
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress div { height: 100%; background: var(--good); width: 0; transition: width 0.3s; }
+
+  footer {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    text-align: center;
+    line-height: 1.8;
+  }
+  footer kbd {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.05rem 0.4rem;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 0.72rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>chuleta<span class="tag">tu hoja de trucos 🥩</span></h1>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="controls">
+    <div class="seg">
+      <button id="modeStudy" class="active">Repasar</button>
+      <button id="modeBrowse">Explorar</button>
+    </div>
+    <select id="category" title="Categoría"></select>
+    <button id="direction" title="Cambiar dirección">ES → EN</button>
+    <button id="sound" title="Pronunciar automáticamente el español al descubrirlo">🔊 auto</button>
+    <button id="shuffle" hidden>Barajar</button>
+    <span class="spacer"></span>
+    <button id="reset">Reiniciar progreso</button>
+  </div>
+
+  <div class="progress"><div id="bar"></div></div>
+
+  <div class="card-stage">
+    <div class="card" id="card">
+      <div class="face front">
+        <button class="say" id="sayFront" title="Escuchar (e)">🔊</button>
+        <span class="eyebrow" id="frontCat"></span>
+        <p class="phrase" id="frontText"></p>
+        <span class="hint" id="frontHint">dilo en voz alta, luego gira</span>
+      </div>
+      <div class="face back">
+        <button class="say" id="sayBack" title="Escuchar (e)">🔊</button>
+        <span class="eyebrow" id="backLabel"></span>
+        <p class="phrase" id="backText"></p>
+        <p class="note" id="backNote"></p>
+        <span class="hint" id="backHint"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="judge hidden" id="judge">
+    <button class="yes" id="correct">Correcta ✓</button>
+    <button class="no" id="wrong">Incorrecta ✗</button>
+  </div>
+
+  <div class="nav hidden" id="nav">
+    <button id="prev">← anterior</button>
+    <span class="pos" id="pos"></span>
+    <button id="next">siguiente →</button>
+  </div>
+
+  <footer>
+    <kbd>espacio</kbd> girar &nbsp; <kbd>1</kbd> correcta &nbsp; <kbd>2</kbd> incorrecta &nbsp;
+    <kbd>e</kbd> escuchar &nbsp; <kbd>←</kbd><kbd>→</kbd> explorar &nbsp; <kbd>s</kbd> barajar
+  </footer>
+</main>
+
+<script>
+const DECK = [
+  // Cumpleaños y signos
+  { es: "¿Cuándo es tu cumpleaños?", en: "When is your birthday?", cat: "Cumpleaños y signos" },
+  { es: "Mi cumpleaños es el doce de noviembre", en: "My birthday is November 12th", cat: "Cumpleaños y signos" },
+  { es: "¿Qué signo eres?", en: "What sign are you?", cat: "Cumpleaños y signos" },
+  { es: "Soy escorpio", en: "I am a Scorpio", cat: "Cumpleaños y signos" },
+  { es: "Mi signo es escorpio", en: "My sign is Scorpio", cat: "Cumpleaños y signos" },
+
+  // Trabajo y estudios
+  { es: "¿Estudias y/o trabajas?", en: "Do you study and/or work?", cat: "Trabajo y estudios",
+    note: "spoken: \"¿Estudias o trabajas?\" — also famously a cheesy pickup line" },
+  { es: "(Yo) trabajo", en: "I work", cat: "Trabajo y estudios" },
+  { es: "¿Qué estudias?", en: "What do you study?", cat: "Trabajo y estudios" },
+  { es: "¿Qué estudiaste?", en: "What did you study?", cat: "Trabajo y estudios" },
+  { es: "Yo estudié...", en: "I studied...", cat: "Trabajo y estudios" },
+  { es: "Estudié electrónica e informática", en: "I studied electronics and computer science", cat: "Trabajo y estudios",
+    note: "\"e\" instead of \"y\" before words starting with an i- sound" },
+  { es: "¿De qué trabajas? / ¿A qué te dedicas?", en: "What do you do for a living?", cat: "Trabajo y estudios" },
+  { es: "Me dedico a dormir y a trabajar", en: "I dedicate myself to sleeping and working", cat: "Trabajo y estudios" },
+  { es: "Pues trabajo de programador, en una fundación de blockchain", en: "Well, I work as a programmer at a blockchain nonprofit", cat: "Trabajo y estudios",
+    note: "\"una fundación\" implies nonprofit on its own" },
+  { es: "Soy informático", en: "I work in software / IT", cat: "Trabajo y estudios",
+    note: "\"informática\" if you use feminine forms" },
+
+  // Tiempo libre
+  { es: "¿Qué aficiones tienes?", en: "What hobbies do you have?", cat: "Tiempo libre" },
+  { es: "¿Qué haces en tu tiempo libre?", en: "What do you do in your free time?", cat: "Tiempo libre" },
+  { es: "¿Qué te gusta hacer en tu tiempo libre?", en: "What do you like to do in your free time?", cat: "Tiempo libre" },
+  { es: "En mi tiempo libre me gusta...", en: "In my free time I like...", cat: "Tiempo libre" },
+  { es: "hacer ejercicio de fuerza", en: "to do strength training", cat: "Tiempo libre" },
+  { es: "hacer yoga", en: "to do yoga", cat: "Tiempo libre" },
+  { es: "escuchar música jazz en directo", en: "to listen to live jazz music", cat: "Tiempo libre" },
+  { es: "música en directo", en: "live music", cat: "Tiempo libre",
+    note: "Spain says \"en directo\"; Latin America says \"en vivo\" — both correct" },
+  { es: "Pero trabajo la mayoría del tiempo", en: "But I work most of the time", cat: "Tiempo libre" },
+
+  // Conversación sobre yoga
+  { es: "¿Cuántas veces a la semana haces yoga?", en: "How many times a week do you do yoga?", cat: "Yoga" },
+  { es: "¿Qué tipo de yoga?", en: "What kind of yoga?", cat: "Yoga" },
+  { es: "Me gusta hacer yoga tres veces por semana", en: "I like to do yoga three times a week", cat: "Yoga" },
+  { es: "Me gusta hacer flow yoga", en: "I like to do flow yoga", cat: "Yoga" },
+  { es: "Me gusta el yoga en general", en: "I like yoga in general", cat: "Yoga" },
+  { es: "¿Hace cuánto (tiempo) haces yoga?", en: "How long have you been doing yoga?", cat: "Yoga",
+    note: "very Spanish alternative: \"¿Cuánto tiempo llevas haciendo yoga?\"" },
+  { es: "¿Cómo lo descubriste?", en: "How did you discover it?", cat: "Yoga" },
+  { es: "Descubrí el yoga durante la pandemia", en: "I discovered yoga during the pandemic", cat: "Yoga",
+    note: "also: \"durante el Covid\" / \"en el confinamiento\" (during lockdown)" },
+  { es: "¿Y qué te enganchó del yoga?", en: "And what hooked you on yoga?", cat: "Yoga" },
+  { es: "El yoga me curó la ansiedad", en: "Yoga cured my anxiety", cat: "Yoga",
+    note: "Spanish prefers \"me curó la ansiedad\" over \"curó mi ansiedad\" (English-flavored)" },
+  { es: "Y me ayudó a verme y a conocerme a mí mismo", en: "And it helped me see myself clearly and get to know myself", cat: "Yoga",
+    note: "simpler everyday version: \"Me ayudó a conocerme mejor\"" },
+
+  // Cómo estás
+  { es: "Estoy cansado / cansada", en: "I'm tired", cat: "¿Cómo estás?",
+    note: "careful: \"casado\" (no n) means married!" },
+  { es: "Estoy un poco cansado", en: "I'm a little tired", cat: "¿Cómo estás?" },
+  { es: "Estoy agotado", en: "I'm exhausted", cat: "¿Cómo estás?" },
+  { es: "Estoy cansado pero bien", en: "I'm tired but good", cat: "¿Cómo estás?" },
+  { es: "No he dormido bien", en: "I haven't slept well", cat: "¿Cómo estás?",
+    note: "Spain: perfect tense when the period includes now (e.g. said the next morning). LatAm: \"no dormí bien\"" },
+  { es: "He dormido fatal", en: "I've slept terribly", cat: "¿Cómo estás?",
+    note: "\"fatal\" = terribly — a favorite Spain word" },
+  { es: "Anoche no dormí bien", en: "I didn't sleep well last night", cat: "¿Cómo estás?",
+    note: "\"anoche\" pins a closed past moment, so the tense flips to \"dormí\"" },
+
+  // Frases de clase
+  { es: "¿Qué significa...?", en: "What does ... mean?", cat: "Frases de clase" },
+  { es: "¿Qué quiere decir...?", en: "What does ... mean? (lit. \"want to say\")", cat: "Frases de clase" },
+  { es: "¿Cómo se dice ... en español?", en: "How do you say ... in Spanish?", cat: "Frases de clase" },
+  { es: "¿Cómo se escribe?", en: "How do you spell / write it?", cat: "Frases de clase" },
+  { es: "No entiendo", en: "I don't understand", cat: "Frases de clase" },
+  { es: "porfa", en: "please (casual, like \"pls\")", cat: "Frases de clase" },
+
+  // Vocabulario
+  { es: "descubrir", en: "to discover / to find out", cat: "Vocabulario" },
+  { es: "enganchar", en: "to hook (someone on something)", cat: "Vocabulario" },
+  { es: "curar", en: "to cure", cat: "Vocabulario" },
+  { es: "la ayuda", en: "help (noun)", cat: "Vocabulario" },
+  { es: "ayudar", en: "to help", cat: "Vocabulario" },
+  { es: "ver", en: "to see / to watch", cat: "Vocabulario",
+    note: "Spanish uses ver for TV and sports: vi el partido (not mirar)" },
+  { es: "conocer", en: "to know (a person) / to meet for the first time", cat: "Vocabulario",
+    note: "takes the personal \"a\": conocer a alguien" },
+  { es: "conocerme", en: "to know myself", cat: "Vocabulario" },
+  { es: "la electrónica", en: "electronics", cat: "Vocabulario" },
+  { es: "la informática", en: "computer science", cat: "Vocabulario" },
+  { es: "una fundación", en: "a foundation (implies nonprofit)", cat: "Vocabulario" },
+
+  // Saludos y básicos (Lección 1)
+  { es: "hasta luego", en: "see you later", cat: "Saludos y básicos" },
+  { es: "luego", en: "later", cat: "Saludos y básicos" },
+  { es: "hasta pronto", en: "see you soon", cat: "Saludos y básicos" },
+  { es: "pronto", en: "soon", cat: "Saludos y básicos" },
+  { es: "no pasa nada", en: "don't worry / no big deal", cat: "Saludos y básicos" },
+  { es: "Que tengas un buen día", en: "Have a good day", cat: "Saludos y básicos",
+    note: "reply: tú también — you too" },
+  { es: "tú también", en: "you too", cat: "Saludos y básicos" },
+  { es: "llamarse", en: "to be called", cat: "Saludos y básicos",
+    note: "reflexive: me llamo, te llamas, se llama..." },
+  { es: "(yo) me llamo", en: "my name is / I am called", cat: "Saludos y básicos" },
+  { es: "(tú) te llamas", en: "you are called", cat: "Saludos y básicos" },
+  { es: "(él/ella) se llama", en: "he/she is called", cat: "Saludos y básicos" },
+  { es: "(nosotros) nos llamamos", en: "we are called", cat: "Saludos y básicos" },
+  { es: "(vosotros) os llamáis", en: "you all are called (Spain)", cat: "Saludos y básicos" },
+  { es: "(ellos) se llaman", en: "they are called", cat: "Saludos y básicos" },
+  { es: "llamar", en: "to call", cat: "Saludos y básicos" },
+  { es: "una llamada", en: "a (phone) call", cat: "Saludos y básicos" },
+
+  // Pronunciación
+  { es: "pero / el perro", en: "but / the dog", cat: "Pronunciación",
+    note: "single r vs rolled rr — different words!" },
+  { es: "el ratón", en: "the mouse", cat: "Pronunciación",
+    note: "also the computer mouse" },
+  { es: "cine, cena", en: "cinema, dinner", cat: "Pronunciación",
+    note: "c + e/i = \"th\" sound in Spain (like \"thin\")" },
+  { es: "casa, coche, cumpleaños", en: "house, car, birthday", cat: "Pronunciación",
+    note: "c + a/o/u = k sound" },
+
+  // Familia
+  { es: "mi padre", en: "my father", cat: "Familia" },
+  { es: "tu padre", en: "your father", cat: "Familia",
+    note: "tu (no accent) = your; tú = you" },
+  { es: "hermano de acogida", en: "foster brother", cat: "Familia" },
+  { es: "hermano adoptivo", en: "adoptive brother", cat: "Familia" },
+  { es: "¿Hace cuánto tiempo vive con vosotros?", en: "How long has he/she lived with you (all)?", cat: "Familia" },
+  { es: "Él ha vivido con ella", en: "He has lived with her", cat: "Familia" },
+  { es: "Él lleva viviendo con ella desde hace ocho años", en: "He's been living with her for eight years", cat: "Familia",
+    note: "llevar + gerund — the go-to duration structure" },
+  { es: "el novio / la novia", en: "boyfriend / girlfriend", cat: "Familia" },
+  { es: "mi mejor amiga", en: "my best friend (f)", cat: "Familia" },
+
+  // Trabajo y estudios (additions)
+  { es: "¿En qué consiste tu trabajo?", en: "What does your job involve?", cat: "Trabajo y estudios" },
+  { es: "coordinar gente", en: "to coordinate people", cat: "Trabajo y estudios" },
+  { es: "escribir código", en: "to write code", cat: "Trabajo y estudios" },
+  { es: "acelerar el desarrollo", en: "to speed up development", cat: "Trabajo y estudios" },
+  { es: "la gente", en: "people", cat: "Trabajo y estudios",
+    note: "grammatically singular: la gente es..." },
+  { es: "consultor farmacéutico", en: "pharmaceutical consultant", cat: "Trabajo y estudios" },
+
+  // Fin de semana (pasado)
+  { es: "¿Qué tal el fin de semana?", en: "How was the weekend?", cat: "Fin de semana" },
+  { es: "¿Qué has hecho?", en: "What have you done?", cat: "Fin de semana" },
+  { es: "¿Qué hiciste?", en: "What did you do?", cat: "Fin de semana" },
+  { es: "¿Qué más hiciste?", en: "What else did you do?", cat: "Fin de semana" },
+  { es: "mucho sol", en: "a lot of sun", cat: "Fin de semana" },
+  { es: "Me preparé un poco para España", en: "I prepared a bit for Spain", cat: "Fin de semana" },
+  { es: "Compré los billetes de avión a España", en: "I bought the plane tickets to Spain", cat: "Fin de semana" },
+  { es: "Reservé mi alojamiento", en: "I booked my accommodation", cat: "Fin de semana" },
+  { es: "¿Saliste a la calle?", en: "Did you go out?", cat: "Fin de semana",
+    note: "lit. \"did you go out to the street?\"" },
+  { es: "Fui a...", en: "I went to...", cat: "Fin de semana" },
+  { es: "Fui a casa de mis amigos a ver fútbol", en: "I went to my friends' house to watch football", cat: "Fin de semana" },
+  { es: "Medité (por) una hora", en: "I meditated for an hour", cat: "Fin de semana",
+    note: "Spain usually drops the por: medité una hora" },
+
+  // Piso y viaje
+  { es: "reservar", en: "to book", cat: "Piso y viaje" },
+  { es: "comprar", en: "to buy", cat: "Piso y viaje" },
+  { es: "el avión", en: "the airplane", cat: "Piso y viaje" },
+  { es: "el billete", en: "the ticket", cat: "Piso y viaje",
+    note: "Spain; Latin America says el boleto" },
+  { es: "el alojamiento", en: "accommodation", cat: "Piso y viaje" },
+  { es: "compartir", en: "to share", cat: "Piso y viaje" },
+  { es: "un piso", en: "a flat (Spain)", cat: "Piso y viaje" },
+  { es: "un apartamento", en: "an apartment", cat: "Piso y viaje" },
+  { es: "un piso compartido", en: "a shared flat", cat: "Piso y viaje" },
+  { es: "¿Ha sido difícil encontrarlo?", en: "Has it been hard to find (it)?", cat: "Piso y viaje" },
+  { es: "difícil", en: "difficult", cat: "Piso y viaje" },
+  { es: "fácil", en: "easy", cat: "Piso y viaje" },
+  { es: "encontrar", en: "to find", cat: "Piso y viaje" },
+  { es: "¿En qué zona?", en: "In which area?", cat: "Piso y viaje" },
+  { es: "Él me ayudó", en: "He helped me", cat: "Piso y viaje" },
+  { es: "Me quedaré con él", en: "I will stay with him", cat: "Piso y viaje" },
+  { es: "Él compró el apartamento recientemente", en: "He bought the apartment recently", cat: "Piso y viaje" },
+  { es: "cerca", en: "near", cat: "Piso y viaje" },
+  { es: "Edimburgo", en: "Edinburgh", cat: "Piso y viaje" },
+
+  // Quedar y conocer (three ways to "meet")
+  { es: "quedar", en: "to meet up (planned, with people you know)", cat: "Quedar y conocer" },
+  { es: "Hoy quedo con mis amigos", en: "Today I'm meeting my friends", cat: "Quedar y conocer" },
+  { es: "quedarse", en: "to stay", cat: "Quedar y conocer" },
+  { es: "Este sábado me quedo en casa", en: "This Saturday I'm staying home", cat: "Quedar y conocer" },
+  { es: "Este sábado quedaré con mis amigos", en: "This Saturday I'll meet up with my friends", cat: "Quedar y conocer" },
+  { es: "encontrarse con alguien", en: "to run into someone (by chance)", cat: "Quedar y conocer" },
+  { es: "Me encontré a tu madre en el supermercado", en: "I ran into your mother at the supermarket", cat: "Quedar y conocer" },
+  { es: "Mañana conoceré al novio de mi mejor amiga", en: "Tomorrow I'll meet my best friend's boyfriend", cat: "Quedar y conocer",
+    note: "\"al\" — conocer takes the personal a" },
+  { es: "¿De qué conoces a este amigo?", en: "How do you know this friend?", cat: "Quedar y conocer" },
+  { es: "Lo conozco de la universidad", en: "I know him from university", cat: "Quedar y conocer" },
+  { es: "¿Cuántos años tiene (él)?", en: "How old is he?", cat: "Quedar y conocer",
+    note: "Spanish \"has\" years: tener ... años" },
+  { es: "la misma edad que yo", en: "the same age as me", cat: "Quedar y conocer" },
+  { es: "la edad", en: "age", cat: "Quedar y conocer" },
+  { es: "lo mismo", en: "the same (thing)", cat: "Quedar y conocer" },
+  { es: "el mismo coche", en: "the same car", cat: "Quedar y conocer" },
+  { es: "¿Estudió lo mismo que tú?", en: "Did he study the same as you?", cat: "Quedar y conocer" },
+  { es: "Es mi primera vez", en: "It's my first time", cat: "Quedar y conocer" },
+  { es: "¿Lo sabes?", en: "Do you know (it)?", cat: "Quedar y conocer" },
+
+  // Días y tiempo
+  { es: "lunes", en: "Monday", cat: "Días y tiempo" },
+  { es: "martes", en: "Tuesday", cat: "Días y tiempo" },
+  { es: "miércoles", en: "Wednesday", cat: "Días y tiempo" },
+  { es: "jueves", en: "Thursday", cat: "Días y tiempo" },
+  { es: "viernes", en: "Friday", cat: "Días y tiempo" },
+  { es: "sábado", en: "Saturday", cat: "Días y tiempo" },
+  { es: "domingo", en: "Sunday", cat: "Días y tiempo" },
+  { es: "la hora", en: "the hour / the time", cat: "Días y tiempo" },
+  { es: "el día", en: "the day", cat: "Días y tiempo",
+    note: "masculine despite ending in -a" },
+  { es: "la semana", en: "the week", cat: "Días y tiempo" },
+  { es: "el fin de semana", en: "the weekend", cat: "Días y tiempo" },
+  { es: "ayer", en: "yesterday", cat: "Días y tiempo" },
+  { es: "hoy", en: "today", cat: "Días y tiempo" },
+  { es: "mañana", en: "tomorrow", cat: "Días y tiempo",
+    note: "la mañana (with article) = the morning" },
+  { es: "la mañana", en: "the morning", cat: "Días y tiempo" },
+  { es: "anoche", en: "last night", cat: "Días y tiempo" },
+
+  // Meditación
+  { es: "meditar", en: "to meditate", cat: "Meditación" },
+  { es: "¿Cómo es la meditación vipassana?", en: "What is vipassana meditation like?", cat: "Meditación" },
+  { es: "El objetivo de vipassana es ver la vida tal y como es", en: "The goal of vipassana is to see life just as it is", cat: "Meditación",
+    note: "tal y como es — just as it is" },
+  { es: "Te centras en la respiración", en: "You focus on your breathing", cat: "Meditación",
+    note: "centrarse en — to focus on" },
+  { es: "Escaneas tu cuerpo desde la cabeza hasta los pies", en: "You scan your body from head to feet", cat: "Meditación",
+    note: "desde ... hasta — from ... to" },
+  { es: "la respiración", en: "breathing", cat: "Meditación" },
+  { es: "los sentidos", en: "the senses", cat: "Meditación" },
+  { es: "atención plena", en: "mindfulness", cat: "Meditación" },
+  { es: "amor y bondad", en: "love and kindness", cat: "Meditación" },
+  { es: "amable", en: "kind (polite)", cat: "Meditación" },
+  { es: "la bondad", en: "kindness, goodness (from the heart)", cat: "Meditación" },
+  { es: "Estaba buscando nuevas técnicas de meditación", en: "I was looking for new meditation techniques", cat: "Meditación" },
+  { es: "¿Qué otras técnicas de meditación has utilizado?", en: "What other meditation techniques have you used?", cat: "Meditación" },
+
+  // Gramática
+  { es: "hay", en: "there is / there are", cat: "Gramática" },
+  { es: "había", en: "there was / there were", cat: "Gramática" },
+  { es: "habrá", en: "there will be", cat: "Gramática" },
+  { es: "Yo estaba buscando", en: "I was searching", cat: "Gramática",
+    note: "estar + -ando/-iendo = English -ing" },
+  { es: "Yo estoy bebiendo", en: "I am drinking", cat: "Gramática" },
+  { es: "para / por", en: "for", cat: "Gramática",
+    note: "para = purpose/destination; por = duration/cause" },
+  { es: "para aprender español", en: "(in order) to learn Spanish", cat: "Gramática" },
+  { es: "solo los primeros años", en: "only the first years", cat: "Gramática",
+    note: "\"sólo\" with accent is the older spelling" },
+  { es: "de / a", en: "of, from / to", cat: "Gramática" },
+  { es: "llevar", en: "to carry / to bring / to wear", cat: "Gramática",
+    note: "also duration: llevo 4 años haciendo yoga" },
+  { es: "Llevo una chaqueta roja", en: "I'm wearing a red jacket", cat: "Gramática" },
+  { es: "Llevo las cervezas a la cena", en: "I'm bringing the beers to dinner", cat: "Gramática" },
+  { es: "Llevo a mi hijo en brazos", en: "I carry my son in my arms", cat: "Gramática" },
+
+  // Frases de clase (additions)
+  { es: "No me acuerdo", en: "I don't remember", cat: "Frases de clase" },
+  { es: "No lo sé", en: "I don't know (it)", cat: "Frases de clase" },
+  { es: "¿Puedes repetir, por favor?", en: "Can you repeat, please?", cat: "Frases de clase" },
+  { es: "¿Puedes escribirlo?", en: "Can you write it down?", cat: "Frases de clase" },
+  { es: "para llevar", en: "to take away (food / drink)", cat: "Frases de clase" },
+  { es: "dime", en: "tell me / go ahead", cat: "Frases de clase" },
+  { es: "¿Cómo?", en: "What? / Sorry? (didn't catch that)", cat: "Frases de clase" },
+  { es: "¿A qué te refieres?", en: "What do you mean / what are you referring to?", cat: "Frases de clase" },
+  { es: "significar", en: "to mean", cat: "Frases de clase" },
+  { es: "Esta palabra significa...", en: "This word means...", cat: "Frases de clase" },
+  { es: "referirse", en: "to refer (to)", cat: "Frases de clase" },
+
+  // Vocabulario (additions)
+  { es: "útil", en: "useful", cat: "Vocabulario" },
+  { es: "las frases", en: "the sentences / phrases", cat: "Vocabulario" },
+  { es: "hablar", en: "to speak, to talk", cat: "Vocabulario" },
+  { es: "buscar", en: "to search, to look for", cat: "Vocabulario" },
+  { es: "utilizar", en: "to use", cat: "Vocabulario" },
+  { es: "entonces", en: "then", cat: "Vocabulario" },
+  { es: "así que...", en: "so...", cat: "Vocabulario" },
+  { es: "o sea que...", en: "so... / in other words", cat: "Vocabulario" },
+  { es: "la soja", en: "soy", cat: "Vocabulario" },
+  { es: "salir", en: "to go out", cat: "Vocabulario" },
+  { es: "la calle", en: "the street", cat: "Vocabulario" },
+  { es: "la otra parte", en: "the other part", cat: "Vocabulario" },
+  { es: "¿De qué parte...?", en: "From which part...?", cat: "Vocabulario" },
+  { es: "el cine", en: "the cinema", cat: "Vocabulario" },
+  { es: "la cena", en: "the dinner", cat: "Vocabulario" },
+  { es: "la casa", en: "the house", cat: "Vocabulario" },
+  { es: "el coche", en: "the car", cat: "Vocabulario" },
+  { es: "el cumpleaños", en: "the birthday", cat: "Vocabulario" },
+  { es: "el supermercado", en: "the supermarket", cat: "Vocabulario" },
+  { es: "prepararse", en: "to prepare (oneself)", cat: "Vocabulario" },
+  { es: "vivir", en: "to live", cat: "Vocabulario" },
+  { es: "(yo) vi", en: "I saw / I watched", cat: "Vocabulario",
+    note: "preterite of ver" },
+  { es: "yo mismo / yo misma", en: "myself", cat: "Vocabulario" },
+];
+
+// Card identity = Spanish text, so progress survives reordering/appending cards.
+DECK.forEach(c => c.id = c.es);
+
+const DAY = 24 * 60 * 60 * 1000;
+const NEW_PER_DAY = 20;
+const $ = id => document.getElementById(id);
+
+// ---- Daily new-card budget ----
+// Without a cap, every unseen card floods the first session and the next days
+// drown in reviews. Introductions are counted when a card gets its first grade.
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+}
+let newLog = JSON.parse(localStorage.getItem("chuleta-newlog") || "{}");
+function rolloverNewLog() {
+  if (newLog.date !== todayKey()) newLog = { date: todayKey(), count: 0 };
+}
+function saveNewLog() { localStorage.setItem("chuleta-newlog", JSON.stringify(newLog)); }
+
+// ---- SRS state (SM-2) ----
+// Per card: reps (consecutive successes), ease factor, interval in days, due timestamp.
+let srs = JSON.parse(localStorage.getItem("chuleta-srs") || "{}");
+function stateOf(id) {
+  return srs[id] || { reps: 0, ease: 2.5, interval: 0, due: 0, lapses: 0 };
+}
+function saveSrs() { localStorage.setItem("chuleta-srs", JSON.stringify(srs)); }
+
+// Direction setting: "mix" rolls per card (75% EN→ES production practice,
+// 25% ES→EN recognition); activeDir is the roll for the card on screen.
+let dir = localStorage.getItem("chuleta-dir2") || "mix";
+let activeDir = "en-es";
+let mode = "study";           // "study" | "browse"
+let category = "Todas";
+let flipped = false;
+
+function rollDir() {
+  activeDir = dir === "mix" ? (Math.random() < 0.75 ? "en-es" : "es-en") : dir;
+}
+
+// ---- Text-to-speech ----
+// Hearing the word builds its phonological form; reading alone means rehearsing
+// a guessed pronunciation. Auto mode speaks the Spanish whenever it's revealed
+// (never before — it would give the answer away); 🔊 or "e" speak on demand.
+let autoSay = localStorage.getItem("chuleta-sound") !== "0";
+let lastSpoken = "";
+
+function esVoice() {
+  const vs = speechSynthesis.getVoices().filter(v => v.lang.startsWith("es"));
+  return vs.find(v => v.lang === "es-ES") || vs[0] || null;
+}
+if ("speechSynthesis" in window) speechSynthesis.getVoices(); // warm up async voice list
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const v = esVoice();
+  if (v) u.voice = v;
+  u.lang = "es-ES";
+  u.rate = 0.9;
+  speechSynthesis.speak(u);
+}
+
+function showingSpanish() {
+  return activeDir === "es-en" ? !flipped : flipped;
+}
+
+function maybeAutoSay(card) {
+  if (!autoSay || mode !== "study" || !card || !showingSpanish()) return;
+  const key = card.id + (flipped ? ":b" : ":f");
+  if (key === lastSpoken) return;
+  lastSpoken = key;
+  speak(card.es);
+}
+
+// Study session
+let queue = [];               // card ids: due reviews first, then new cards
+let sessionTotal = 0;
+let sessionDone = 0;
+
+// Browse session
+let browseOrder = [];
+let browseIdx = 0;
+
+function filteredDeck() {
+  return DECK.filter(c => category === "Todas" || c.cat === category);
+}
+
+function buildQueue() {
+  rolloverNewLog();
+  const now = Date.now();
+  const cards = filteredDeck();
+  // Due = any card with saved state whose time has come. That includes lapsed
+  // cards (reps 0 but seen before) — relearning doesn't consume new-card slots.
+  const due = cards.filter(c => srs[c.id] && srs[c.id].due <= now)
+                   .sort((a, b) => stateOf(a.id).due - stateOf(b.id).due);
+  const slots = Math.max(0, NEW_PER_DAY - newLog.count);
+  const fresh = cards.filter(c => !srs[c.id]).slice(0, slots);
+  queue = [...due, ...fresh].map(c => c.id);
+  sessionTotal = queue.length;
+  sessionDone = 0;
+}
+
+function buildBrowse() {
+  browseOrder = filteredDeck().map(c => c.id);
+  browseIdx = 0;
+}
+
+function cardById(id) { return DECK.find(c => c.id === id); }
+
+function currentCard() {
+  if (mode === "study") return queue.length ? cardById(queue[0]) : null;
+  if (!browseOrder.length) return null;
+  browseIdx = ((browseIdx % browseOrder.length) + browseOrder.length) % browseOrder.length;
+  return cardById(browseOrder[browseIdx]);
+}
+
+function humanDelay(ms) {
+  if (ms <= 0) return "ahora";
+  const h = Math.round(ms / 3600000);
+  if (h < 20) return "en " + Math.max(1, h) + (h === 1 ? " hora" : " horas");
+  const d = Math.round(ms / DAY);
+  return d === 1 ? "mañana" : "en " + d + " días";
+}
+
+function nextDueInfo() {
+  const upcoming = filteredDeck()
+    .map(c => stateOf(c.id))
+    .filter(s => s.reps > 0 && s.due > Date.now());
+  if (!upcoming.length) return "";
+  const soonest = Math.min(...upcoming.map(s => s.due));
+  return "Próximo repaso: " + humanDelay(soonest - Date.now());
+}
+
+// ---- SM-2 grading, binary buttons ----
+// Correct: interval 1d → 6d → interval × ease (classic SM-2 steps); ease
+// recovers +0.05 per success (cap 2.5) so a rough start isn't a life sentence.
+// Wrong: lapse — ease drops 0.2 (floor 1.3), card resets and retries later
+// in this same session; clearing it then schedules it for tomorrow.
+function grade(correct) {
+  if (mode !== "study" || !queue.length || !flipped) return;
+  const id = queue.shift();
+  const isNew = !srs[id];
+  const s = stateOf(id);
+  if (correct) {
+    if (s.reps === 0) s.interval = 1;
+    else if (s.reps === 1) s.interval = 6;
+    else s.interval = Math.round(s.interval * s.ease);
+    s.ease = Math.min(2.5, Math.round((s.ease + 0.05) * 100) / 100);
+    s.reps += 1;
+    s.due = Date.now() + s.interval * DAY;
+    sessionDone += 1;
+  } else {
+    s.ease = Math.max(1.3, Math.round((s.ease - 0.2) * 100) / 100);
+    s.reps = 0;
+    s.interval = 0;
+    s.lapses += 1;
+    queue.splice(Math.min(5, queue.length), 0, id);
+  }
+  srs[id] = s;
+  saveSrs();
+  if (isNew) { rolloverNewLog(); newLog.count += 1; saveNewLog(); }
+  flipped = false;
+  rollDir();
+  render();
+}
+
+function renderStats() {
+  const cards = filteredDeck();
+  const now = Date.now();
+  let fresh = 0, due = 0, learned = 0;
+  cards.forEach(c => {
+    const s = stateOf(c.id);
+    if (!srs[c.id]) fresh++;
+    else if (s.due <= now) due++;
+    if (s.interval >= 21) learned++;
+  });
+  $("stats").innerHTML =
+    "nuevas <b>" + fresh + "</b> · para hoy <b>" + due + "</b> · " +
+    "<span class='learned'>aprendidas <b>" + learned + "</b></span>";
+}
+
+function render() {
+  renderStats();
+  $("direction").textContent =
+    dir === "mix" ? "Mixto 🎲" : dir === "es-en" ? "ES → EN" : "EN → ES";
+  $("direction").title = dir === "mix"
+    ? "75% EN→ES, 25% ES→EN — pulsa para fijar la dirección"
+    : "Pulsa para cambiar la dirección";
+  $("sound").textContent = autoSay ? "🔊 auto" : "🔇 manual";
+  $("shuffle").hidden = mode === "study";
+  $("modeStudy").classList.toggle("active", mode === "study");
+  $("modeBrowse").classList.toggle("active", mode === "browse");
+  $("nav").classList.toggle("hidden", mode === "study");
+
+  const card = currentCard();
+  const cardEl = $("card");
+
+  if (mode === "study") {
+    $("bar").style.width = sessionTotal ? (sessionDone / sessionTotal * 100) + "%" : "0%";
+    $("judge").classList.toggle("hidden", !card || !flipped);
+  } else {
+    $("bar").style.width = "0%";
+    $("judge").classList.add("hidden");
+    $("pos").textContent = browseOrder.length ? (browseIdx + 1) + " / " + browseOrder.length : "0 / 0";
+  }
+
+  if (!card) {
+    $("frontText").textContent = mode === "study" ? "🎉 ¡Todo hecho por hoy!" : "No hay tarjetas aquí";
+    $("frontCat").textContent = "";
+    $("frontHint").textContent = mode === "study" ? nextDueInfo() : "";
+    $("backText").textContent = "";
+    $("backNote").textContent = "";
+    $("backHint").textContent = "";
+    $("sayFront").hidden = true;
+    $("sayBack").hidden = true;
+    cardEl.classList.remove("flipped");
+    return;
+  }
+
+  const s = stateOf(card.id);
+  $("frontText").textContent = activeDir === "es-en" ? card.es : card.en;
+  $("backText").textContent = activeDir === "es-en" ? card.en : card.es;
+  $("backNote").textContent = card.note || "";
+  $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · nueva" : "");
+  $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
+  $("frontHint").textContent = mode === "study" ? "dilo en voz alta, luego gira" : "toca para girar";
+  $("backHint").textContent = mode === "study"
+    ? "si acertaste, la próxima será " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY)
+      // projected with pre-recovery ease; off by at most a day on long intervals
+    : "";
+  $("sayFront").hidden = activeDir !== "es-en";
+  $("sayBack").hidden = activeDir !== "en-es";
+  cardEl.classList.toggle("flipped", flipped);
+  maybeAutoSay(card);
+}
+
+function flip() {
+  if (!currentCard()) return;
+  flipped = !flipped;
+  render();
+}
+
+function move(step) {
+  if (mode !== "browse") return;
+  flipped = false;
+  browseIdx += step;
+  rollDir();
+  render();
+}
+
+function setMode(m) {
+  mode = m;
+  flipped = false;
+  if (m === "study") buildQueue(); else buildBrowse();
+  rollDir();
+  render();
+}
+
+$("card").addEventListener("click", flip);
+$("correct").addEventListener("click", () => grade(true));
+$("wrong").addEventListener("click", () => grade(false));
+$("next").addEventListener("click", () => move(1));
+$("prev").addEventListener("click", () => move(-1));
+$("modeStudy").addEventListener("click", () => setMode("study"));
+$("modeBrowse").addEventListener("click", () => setMode("browse"));
+
+$("shuffle").addEventListener("click", () => {
+  for (let i = browseOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [browseOrder[i], browseOrder[j]] = [browseOrder[j], browseOrder[i]];
+  }
+  browseIdx = 0; flipped = false; rollDir(); render();
+});
+
+$("direction").addEventListener("click", () => {
+  dir = dir === "mix" ? "en-es" : dir === "en-es" ? "es-en" : "mix";
+  localStorage.setItem("chuleta-dir2", dir);
+  flipped = false; rollDir(); render();
+});
+
+$("sound").addEventListener("click", () => {
+  autoSay = !autoSay;
+  localStorage.setItem("chuleta-sound", autoSay ? "1" : "0");
+  if (!autoSay && "speechSynthesis" in window) speechSynthesis.cancel();
+  render();
+});
+
+["sayFront", "sayBack"].forEach(id => $(id).addEventListener("click", e => {
+  e.stopPropagation();
+  const card = currentCard();
+  if (card) speak(card.es);
+}));
+
+$("reset").addEventListener("click", () => {
+  if (!confirm("¿Borrar todo el progreso de repaso?")) return;
+  srs = {};
+  saveSrs();
+  newLog = { date: todayKey(), count: 0 };
+  saveNewLog();
+  setMode(mode);
+});
+
+const cats = ["Todas", ...new Set(DECK.map(c => c.cat))];
+$("category").innerHTML = cats.map(c => `<option>${c}</option>`).join("");
+$("category").addEventListener("change", e => {
+  category = e.target.value;
+  setMode(mode);
+});
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "SELECT") return;
+  if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+  else if (e.key === "1") grade(true);
+  else if (e.key === "2") grade(false);
+  else if (e.key === "ArrowRight") move(1);
+  else if (e.key === "ArrowLeft") move(-1);
+  else if (e.key === "s" && mode === "browse") $("shuffle").click();
+  else if (e.key === "e") {
+    const c = currentCard();
+    if (c && showingSpanish()) speak(c.es);
+  }
+});
+
+setMode("study");
+
+// Offline support when served over http(s); skipped for file:// so
+// double-clicking the file keeps working like before.
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+</body>
+</html>
