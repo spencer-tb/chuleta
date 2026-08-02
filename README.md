@@ -34,6 +34,10 @@ flipping. A phoneme-recognition model (wav2vec2 espeak) runs **in the browser**
 appears color-coded word by word (green / amber / red‿wavy); tap a word to see
 exactly which sounds weren't heard, then replay the native clip and try again.
 First use downloads the model once (~170MB on phones, cached offline after).
+Once unlocked, every reveal starts the **repeat ladder**: Bon plays slow (0.7×),
+the mic listens for your repeat, and passing (≥85% — what native clips score)
+climbs 0.85× → 1× until you're clean at full speed. Spanish-front cards run the
+ladder directly on the front — drill until it's green.
 Spanish allophones (b/β, d/ð, g/ɣ, yeísmo) count as correct; ɾ vs rr and the
 Castilian c/z stay strict — those are the point. Reference phonemes come from
 `tools/gen_phonemes.py` (espeak-ng). Treat it as a coach, not an examiner:
