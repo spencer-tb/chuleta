@@ -190,6 +190,7 @@
   .w-good { color: var(--good); }
   .w-mid { color: var(--marigold); }
   .w-bad { color: var(--bad); text-decoration: underline wavy; text-underline-offset: 0.2em; }
+  #backText span { cursor: pointer; }
 
   .microw { display: flex; gap: 0.75rem; justify-content: center; align-items: center; min-height: 2.6rem; }
   .microw.hidden { visibility: hidden; }
@@ -1033,6 +1034,19 @@ function promptLang() { return activeDir === "es-en" ? "es" : "en"; }
 function answerLang() { return activeDir === "es-en" ? "en" : "es"; }
 function visibleLang() { return flipped ? answerLang() : promptLang(); }
 
+// "a / b" with a single meaning = alternatives: show and practice only the
+// first; the rest moves to the note. Slash on both sides = contrast pair
+// (pero / el perro) — keep both visible. Mirrors speakable() in gen_audio.py.
+function firstVariant(card, lang) {
+  const t = lang === "es" ? card.es : card.en;
+  const other = lang === "es" ? card.en : card.es;
+  if (t.includes(" / ") && !other.includes(" / ") && card.es !== "para / por") {
+    const parts = t.split(" / ");
+    return { text: parts[0], alt: parts.slice(1).join(" / ") };
+  }
+  return { text: t, alt: "" };
+}
+
 // Audio-only prompt for this card right now?
 function audioOnlyNow(card) {
   if (mode !== "study" || scaffold === "texto" || peeked) return false;
@@ -1061,6 +1075,11 @@ let scorerPromise = null;
 let micState = "idle";        // idle | rec | busy
 let micProgress = 0;
 let mediaRec = null, micChunks = [], micTimer = null;
+// Hands-free mode: unlocked after the first successful score (mic permission
+// and model are known-good by then), then EN→ES cards listen automatically.
+let autoMic = localStorage.getItem("chuleta-automic") === "1";
+let lastListenKey = "";
+let vadCtx = null, vadTimer = null, vadNoSpeech = false, micAuto = false;
 let lastScore = null;         // { hash, words: [{w, ph, ok, score}], overall }
 
 if (typeof fetch !== "undefined") {
@@ -1195,22 +1214,77 @@ async function micToggle() {
   if (!canScore(card) || flipped) return;
   if (micState === "rec") { clearTimeout(micTimer); mediaRec.stop(); return; }
   if (micState !== "idle") return;
+  startMic(card, false);
+}
+
+async function startMic(card, auto) {
+  if (micState !== "idle") return;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     micChunks = [];
+    vadNoSpeech = false;
+    micAuto = auto;
     mediaRec = new MediaRecorder(stream);
     mediaRec.ondataavailable = e => micChunks.push(e.data);
     mediaRec.onstop = () => {
+      stopVad();
       stream.getTracks().forEach(t => t.stop());
-      scoreRecording(card);
+      if (vadNoSpeech) { vadNoSpeech = false; micState = "idle"; renderMic(); }
+      else scoreRecording(card);
     };
     mediaRec.start();
     micState = "rec";
+    clearTimeout(micTimer);
     micTimer = setTimeout(() => { if (micState === "rec") mediaRec.stop(); }, 12000);
+    if (auto) startVad(stream);
     renderMic();
   } catch {
     $("micStatus").textContent = "microphone blocked — allow it in site settings";
   }
+}
+
+// Silence detection for hands-free mode: finish ~1.1s after you stop talking;
+// give up quietly if nothing was said for 6s.
+function startVad(stream) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  vadCtx = new AC();
+  const an = vadCtx.createAnalyser();
+  an.fftSize = 2048;
+  vadCtx.createMediaStreamSource(stream).connect(an);
+  const buf = new Float32Array(an.fftSize);
+  let spoke = false, lastVoice = 0;
+  const t0 = Date.now();
+  vadTimer = setInterval(() => {
+    if (micState !== "rec") return;
+    an.getFloatTimeDomainData(buf);
+    let rms = 0;
+    for (const x of buf) rms += x * x;
+    rms = Math.sqrt(rms / buf.length);
+    const now = Date.now();
+    if (rms > 0.012) { spoke = true; lastVoice = now; }
+    if (spoke && now - lastVoice > 1100) mediaRec.stop();
+    else if (!spoke && now - t0 > 6000) { vadNoSpeech = true; mediaRec.stop(); }
+  }, 100);
+}
+
+function stopVad() {
+  clearInterval(vadTimer);
+  vadTimer = null;
+  if (vadCtx) { vadCtx.close(); vadCtx = null; }
+}
+
+function maybeAutoListen(card) {
+  if (!autoMic || micState !== "idle" || !card) return;
+  if (mode !== "study" || activeDir !== "en-es" || flipped || !canScore(card)) return;
+  const key = card.id + ":" + activeDir;
+  if (key === lastListenKey) return;
+  lastListenKey = key;
+  const go = () => {
+    if (micState === "idle" && currentCard() === card && !flipped) startMic(card, true);
+  };
+  // Don't record Brooke — wait for the prompt clip to finish.
+  if (player && !player.paused && !player.ended) player.addEventListener("ended", go, { once: true });
+  else go();
 }
 
 async function scoreRecording(card) {
@@ -1225,6 +1299,7 @@ async function scoreRecording(card) {
     const result = scoreWords(ref.p, hyp);
     result.words.forEach((x, i) => x.w = ref.w[i]);
     lastScore = { hash: fnv1a(card.es), words: result.words, overall: result.overall };
+    if (!autoMic) { autoMic = true; localStorage.setItem("chuleta-automic", "1"); }
   } catch (e) {
     lastScore = { hash: fnv1a(card.es), error: true };
   }
@@ -1388,7 +1463,7 @@ function render() {
 
   const s = stateOf(card.id);
   const earOnly = audioOnlyNow(card);
-  $("frontText").textContent = earOnly ? "🎧" : (activeDir === "es-en" ? card.es : card.en);
+  $("frontText").textContent = earOnly ? "🎧" : firstVariant(card, promptLang()).text;
   $("peek").hidden = !earOnly;
   const sc = lastScore && lastScore.hash === fnv1a(card.es) && activeDir === "en-es" ? lastScore : null;
   if (sc && !sc.error) {
@@ -1398,11 +1473,13 @@ function render() {
     $("backScore").textContent =
       "pronunciation " + Math.round(sc.overall * 100) + "% · tap a word for detail";
   } else {
-    $("backText").textContent = activeDir === "es-en" ? card.en : card.es;
+    $("backText").textContent = firstVariant(card, answerLang()).text;
     $("backScore").textContent = sc && sc.error
       ? "couldn't score that — try again, closer to the mic" : "";
   }
-  $("backNote").textContent = card.note || "";
+  const altBits = [firstVariant(card, "es").alt, firstVariant(card, "en").alt].filter(Boolean);
+  $("backNote").textContent = [card.note, altBits.length ? "also: " + altBits.join(" · ") : ""]
+    .filter(Boolean).join(" — ");
   $("backGloss").innerHTML = (GLOSS[card.es] || "").split(" · ").filter(Boolean)
     .map(pair => {
       const [chunk, meaning] = pair.split(" = ");
@@ -1422,6 +1499,7 @@ function render() {
   cardEl.classList.toggle("flipped", flipped);
   maybeAutoPlay(card);
   renderMic();
+  maybeAutoListen(card);
 }
 
 function renderMic() {
@@ -1436,8 +1514,9 @@ function renderMic() {
         ? "↓ model " + micProgress + "%" : "… scoring")
     : "🎤 say it (m)";
   $("micStatus").textContent =
-    micState === "busy" && micProgress > 0 && micProgress < 100
-      ? "one-time download" : "";
+    micState === "busy" && micProgress > 0 && micProgress < 100 ? "one-time download"
+    : micState === "rec" && micAuto ? "listening — pause to finish"
+    : "";
 }
 
 function flip() {
