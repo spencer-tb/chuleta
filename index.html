@@ -1068,7 +1068,7 @@ function audioOnlyNow(card) {
 function maybeAutoPlay(card) {
   if (!autoSay || mode !== "study" || !card) return;
   if (ladder && ladder.hash === fnv1a(card.es) &&
-      (flipped || activeDir === "es-en")) return; // ladder owns the Spanish audio
+      activeDir === "en-es" && flipped) return; // ladder owns the Spanish audio
   const key = card.id + ":" + (flipped ? "b" : "f") + ":" + activeDir;
   if (key === lastSpoken) return;
   lastSpoken = key;
@@ -1226,16 +1226,14 @@ function ctcPhones(logits, id2tok, pad) {
 async function micToggle() {
   const card = currentCard();
   if (micState === "rec") { clearTimeout(micTimer); mediaRec.stop(); return; }
-  if (micState !== "idle" || !card) return;
-  if (flipped || activeDir === "es-en") {
-    // Anywhere the Spanish is visible, the button starts (or replays) the
-    // repeat ladder — this is also mobile's first-time entry point.
+  if (micState !== "idle" || !card || activeDir !== "en-es") return;
+  if (flipped) {
+    // EN→ES back: start (or replay) the repeat ladder — this is also
+    // mobile's first-time entry point.
     if (!repeatEligible(card)) return;
     getMicStream().catch(() => {});   // grab permission inside the tap gesture
-    const hash = fnv1a(card.es);
-    if (!ladder || ladder.hash !== hash)
-      ladder = { hash, step: 0, attempts: 0, fullTries: 0, cleared: false, done: false };
-    if (!ladder.done) ladderPlayAndListen();
+    if (!ladder || ladder.hash !== fnv1a(card.es)) startLadder(card);
+    else if (!ladder.done) ladderPlayAndListen();
     return;
   }
   if (!canScore(card)) return;
@@ -1380,19 +1378,21 @@ function repeatEligible(card) {
 // successful score on THIS device proves mic + model work here.
 function canRepeat(card) { return autoMic && repeatEligible(card); }
 
-// The ladder runs wherever the Spanish is the thing being practised: the back
-// of any card after reveal, and the FRONT of ES→EN cards (Spanish visible —
-// speaking it there spoils nothing).
+// The ladder runs only on EN→ES cards after the reveal — the direction where
+// the Spanish is the answer being produced. ES→EN is listening comprehension:
+// no mic, no ladder, grade on understanding.
 function ladderCtx(card) {
   return !!(card && ladder && ladder.hash === fnv1a(card.es) &&
-    mode === "study" && (flipped || activeDir === "es-en"));
+    mode === "study" && activeDir === "en-es" && flipped);
 }
 
 function startLadder(card) {
   if (!canRepeat(card)) return;
   const hash = fnv1a(card.es);
   if (ladder && ladder.hash === hash) return;
-  ladder = { hash, step: 0, attempts: 0, fullTries: 0, cleared: false, done: false };
+  // Probe first at full speed: a clean first repeat means no forced drilling.
+  ladder = { hash, step: LADDER_RATES.length - 1, attempts: 0, fullTries: 0,
+             probe: true, cleared: false, mastered: false, done: false };
   ladderPlayAndListen();
 }
 
@@ -1407,15 +1407,28 @@ function ladderPlayAndListen() {
   renderMic();
 }
 
-// One good repeat (every word at least orange, any speed) unlocks grading.
-// The ladder keeps climbing toward the trophy: a full-speed attempt that
-// passes overall ends it as "mastered". Six full-speed tries end it anyway
-// so a bad mic can't trap a session.
+// First repeat is a full-speed probe: clean (every word orange+) means done —
+// repeats are only forced when pronunciation is actually bad. A bad probe
+// drops to 0.7x and climbs back up. One clean repeat at any speed unlocks
+// grading; six full-speed tries end the ladder so a bad mic can't trap you.
 function ladderAdvance(score) {
   if (!ladder || ladder.done) return;
   const okScore = score && !score.error;
   const wasCleared = ladder.cleared;
-  if (okScore && score.words.every(w => w.score >= 0.55)) ladder.cleared = true;
+  const clean = okScore && score.words.every(w => w.score >= 0.55);
+  if (clean) ladder.cleared = true;
+  if (ladder.probe) {
+    ladder.probe = false;
+    if (clean) {
+      ladder.mastered = score.overall >= LADDER_PASS;
+      ladder.done = true;
+      render();
+      return;
+    }
+    ladder.step = 0; // bad first go — drill from slow
+    ladderPlayAndListen();
+    return;
+  }
   const atFull = ladder.step === LADDER_RATES.length - 1;
   if (atFull) {
     ladder.fullTries += 1;
@@ -1442,9 +1455,10 @@ function ladderAdvance(score) {
 }
 
 // Grading is locked until one good repeat (or the ladder gives up).
+// EN→ES only — ES→EN is graded on comprehension, never on speech.
 function gradeLocked() {
   const card = currentCard();
-  if (!card || mode !== "study" || !flipped || !canRepeat(card)) return false;
+  if (!card || mode !== "study" || !flipped || activeDir !== "en-es" || !canRepeat(card)) return false;
   return !(ladder && ladder.hash === fnv1a(card.es) && (ladder.cleared || ladder.done));
 }
 
@@ -1455,12 +1469,7 @@ function resetSpeech() {
 
 function maybeAutoListen(card) {
   if (!autoMic || micState !== "idle" || !card) return;
-  if (mode !== "study" || flipped) return;
-  if (activeDir === "es-en") {
-    // Spanish front: straight into the pronunciation ladder.
-    if (canRepeat(card)) startLadder(card);
-    return;
-  }
+  if (mode !== "study" || flipped || activeDir !== "en-es") return;
   if (!canScore(card)) return;
   const key = card.id + ":" + activeDir;
   if (key === lastListenKey) return;
@@ -1475,7 +1484,7 @@ function maybeAutoListen(card) {
 
 async function scoreRecording(card) {
   const ladderRep = ladder && !ladder.done && ladder.hash === fnv1a(card.es) &&
-    (flipped || activeDir === "es-en");
+    activeDir === "en-es" && flipped;
   micState = "busy";
   renderMic();
   try {
@@ -1662,7 +1671,6 @@ function render() {
     '<span class="' + (x.score >= 0.8 ? "w-good" : x.score >= 0.55 ? "w-mid" : "w-bad") +
     '" data-wi="' + i + '">' + x.w + "</span>").join(" ");
   if (earOnly) $("frontText").textContent = "🎧";
-  else if (activeDir === "es-en" && sc && !sc.error) $("frontText").innerHTML = scoredSpans(sc);
   else $("frontText").textContent = firstVariant(card, promptLang()).text;
   $("peek").hidden = !earOnly;
   if (sc && !sc.error && activeDir === "en-es") {
@@ -1688,8 +1696,6 @@ function render() {
   $("frontCat").textContent = card.cat + (mode === "study" && s.reps === 0 ? " · new" : "");
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
   $("frontHint").textContent = mode !== "study" ? "tap to flip"
-    : (activeDir === "es-en" && sc && !sc.error && !earOnly)
-      ? "pronunciation " + Math.round(sc.overall * 100) + "% — repeat until it's green"
     : earOnly ? "listen — say the translation out loud"
     : "say it out loud, then flip";
   $("backHint").textContent = mode !== "study" ? ""
@@ -1706,11 +1712,11 @@ function render() {
 
 function renderMic() {
   const card = currentCard();
-  const spanishSide = flipped || activeDir === "es-en";
-  const ladderOn = ladder && !ladder.done && card && ladder.hash === fnv1a(card.es) && spanishSide;
+  const enEsBack = activeDir === "en-es" && flipped;
+  const ladderOn = ladder && !ladder.done && card && ladder.hash === fnv1a(card.es) && enEsBack;
   const show = mode === "study" && !!card && (ladderOn ||
-    (!flipped && canScore(card)) ||
-    (spanishSide && !autoMic && repeatEligible(card)));
+    (activeDir === "en-es" && !flipped && canScore(card)) ||
+    (enEsBack && !autoMic && repeatEligible(card)));
   $("microw").classList.toggle("hidden", !show);
   if (!show) return;
   const b = $("mic");
@@ -1723,6 +1729,7 @@ function renderMic() {
   $("micStatus").textContent =
     micState === "busy" && micProgress > 0 && micProgress < 100 ? "one-time download"
     : micState === "rec" && micAuto ? "listening — pause to finish"
+    : ladderOn && ladder.probe ? "repeat after Bon — clean and you're done"
     : ladderOn ? "repeat after Bon · " + LADDER_RATES[ladder.step] + "× · try " +
       (ladder.attempts + 1) + "/" + LADDER_TRIES
     : "";
@@ -1731,7 +1738,7 @@ function renderMic() {
 function flip() {
   if (!currentCard()) return;
   flipped = !flipped;
-  if (flipped && mode === "study") startLadder(currentCard());
+  if (flipped && mode === "study" && activeDir === "en-es") startLadder(currentCard());
   else if (!flipped) resetSpeech();
   render();
 }
