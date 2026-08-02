@@ -250,6 +250,8 @@
     <button id="direction" title="Change direction">ES → EN</button>
     <button id="sound" title="Auto-play audio">🔊 auto</button>
     <button id="textmode" title="Text: always show text · Auto: well-known cards switch to audio-only · Audio: always audio-only">🎓 auto</button>
+    <button id="rateEs" title="Spanish voice speed">ES 1×</button>
+    <button id="rateEn" title="English voice speed">EN 1×</button>
     <button id="shuffle" hidden>Shuffle</button>
     <span class="spacer"></span>
     <button id="reset">Reset progress</button>
@@ -817,6 +819,14 @@ let peeked = false;           // "show text" pressed for the current card
 let lastSpoken = "";
 let player = null;
 
+// Per-voice playback speed (pitch preserved). Slower Spanish is a listening
+// scaffold in its own right — speed back up as decoding improves.
+const RATE_STEPS = [1, 0.85, 0.7, 1.15];
+let rates = {
+  es: parseFloat(localStorage.getItem("chuleta-rate-es")) || 1,
+  en: parseFloat(localStorage.getItem("chuleta-rate-en")) || 1,
+};
+
 function fnv1a(s) {
   let h = 0x811c9dc5;
   for (const b of new TextEncoder().encode(s)) {
@@ -835,7 +845,7 @@ function speak(text, lang) {
   const v = vs.find(x => x.lang === tag) || vs[0];
   if (v) u.voice = v;
   u.lang = tag;
-  u.rate = 0.9;
+  u.rate = 0.9 * rates[lang];
   speechSynthesis.speak(u);
 }
 if ("speechSynthesis" in window) speechSynthesis.getVoices(); // warm up async voice list
@@ -844,6 +854,9 @@ function playClip(card, lang) {
   if (player) player.pause();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
   const a = new Audio("audio/" + lang + "/" + fnv1a(card.es) + ".mp3");
+  a.playbackRate = rates[lang];
+  a.chLang = lang;
+  if ("preservesPitch" in a) a.preservesPitch = true;
   const fallback = () => speak(lang === "es" ? card.es : card.en, lang);
   a.onerror = fallback; // clip missing (e.g. card added but audio not regenerated)
   player = a;
@@ -989,6 +1002,8 @@ function render() {
     : "Click to change direction";
   $("sound").textContent = autoSay ? "🔊 auto" : "🔇 manual";
   $("textmode").textContent = scaffold === "texto" ? "📖 text" : scaffold === "audio" ? "🎧 audio" : "🎓 auto";
+  $("rateEs").textContent = "ES " + rates.es + "×";
+  $("rateEn").textContent = "EN " + rates.en + "×";
   $("shuffle").hidden = mode === "study";
   $("modeStudy").classList.toggle("active", mode === "study");
   $("modeBrowse").classList.toggle("active", mode === "browse");
@@ -1101,6 +1116,16 @@ $("textmode").addEventListener("click", () => {
   scaffold = scaffold === "auto" ? "audio" : scaffold === "audio" ? "texto" : "auto";
   localStorage.setItem("chuleta-scaffold", scaffold);
   render();
+});
+
+["es", "en"].forEach(lang => {
+  $(lang === "es" ? "rateEs" : "rateEn").addEventListener("click", () => {
+    const i = RATE_STEPS.indexOf(rates[lang]);
+    rates[lang] = RATE_STEPS[(i + 1) % RATE_STEPS.length];
+    localStorage.setItem("chuleta-rate-" + lang, rates[lang]);
+    if (player && player.chLang === lang) player.playbackRate = rates[lang];
+    render();
+  });
 });
 
 $("peek").addEventListener("click", e => {
