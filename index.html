@@ -105,6 +105,10 @@
   .card-stage { perspective: 1200px; }
   .card {
     position: relative;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
     width: 100%;
     min-height: 300px;
     cursor: pointer;
@@ -221,6 +225,8 @@
   .judge .no { border-color: var(--bad); color: var(--bad); background: var(--bad-soft); }
   .judge .no:hover { background: var(--bad); color: #fff; }
   .judge button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .judge .later { border-color: var(--line); color: var(--ink-soft); background: none; }
+  .judge .later:hover { border-color: var(--accent); color: var(--accent); }
   .judge .yes:disabled:hover { background: var(--good-soft); color: var(--good); }
   .judge .no:disabled:hover { background: var(--bad-soft); color: var(--bad); }
   .judge.hidden { visibility: hidden; }
@@ -320,6 +326,7 @@
   <div class="judge hidden" id="judge">
     <button class="yes" id="correct">Correct ✓</button>
     <button class="no" id="wrong">Wrong ✗</button>
+    <button class="later" id="skip">skip ↷</button>
   </div>
 
   <div class="nav hidden" id="nav">
@@ -329,8 +336,8 @@
   </div>
 
   <footer>
-    <kbd>space</kbd> flip &nbsp; <kbd>1</kbd> correct &nbsp; <kbd>2</kbd> wrong &nbsp;
-    <kbd>e</kbd> listen &nbsp; <kbd>m</kbd> say it &nbsp; <kbd>t</kbd> show text &nbsp; <kbd>←</kbd><kbd>→</kbd> browse &nbsp; <kbd>s</kbd> shuffle
+    <kbd>space</kbd> flip &nbsp; <kbd>1</kbd> correct &nbsp; <kbd>2</kbd> wrong &nbsp; <kbd>s</kbd>/<kbd>→</kbd> skip &nbsp;
+    <kbd>e</kbd> listen &nbsp; <kbd>m</kbd> say it &nbsp; <kbd>t</kbd> show text
   </footer>
 </main>
 
@@ -1350,7 +1357,7 @@ function startVad(stream) {
     rms = Math.sqrt(rms / buf.length);
     const now = Date.now();
     if (rms > 0.012) { spoke = true; lastVoice = now; }
-    if (spoke && now - lastVoice > 900) mediaRec.stop();
+    if (spoke && now - lastVoice > 1600) mediaRec.stop();
     else if (!spoke && now - t0 > 6000) { vadNoSpeech = true; mediaRec.stop(); }
   }, 100);
 }
@@ -1423,6 +1430,7 @@ function ladderAdvance(score) {
       ladder.mastered = score.overall >= LADDER_PASS;
       ladder.done = true;
       render();
+      scheduleAutoGrade();
       return;
     }
     ladder.step = 0; // bad first go — drill from slow
@@ -1436,11 +1444,13 @@ function ladderAdvance(score) {
       ladder.mastered = true;
       ladder.done = true;
       render();
+      scheduleAutoGrade();
       return;
     }
     if (ladder.fullTries >= 6) {
       ladder.done = true;
       render();
+      scheduleAutoGrade();
       return;
     }
   } else if (okScore && score.overall >= LADDER_PASS) {
@@ -1454,6 +1464,24 @@ function ladderAdvance(score) {
   ladderPlayAndListen();
 }
 
+// Auto-grading: the front attempt (Spanish said from memory, before any
+// flip) already tells us whether they knew the card. Strong attempt →
+// Correct presses itself once the ladder ends; clearly failed → Wrong.
+// The mid-zone (partial recall) stays manual.
+let frontScore = null;   // { hash, overall } from the say-from-memory attempt
+
+function scheduleAutoGrade() {
+  const card = currentCard();
+  if (!card || !flipped || mode !== "study" || activeDir !== "en-es") return;
+  if (!frontScore || frontScore.hash !== fnv1a(card.es) || gradeLocked()) return;
+  const o = frontScore.overall;
+  if (o < 0.45 || o >= 0.7) {
+    setTimeout(() => {
+      if (currentCard() === card && flipped && !gradeLocked()) grade(o >= 0.7);
+    }, 900);
+  }
+}
+
 // Grading is locked until one good repeat (or the ladder gives up).
 // EN→ES only — ES→EN is graded on comprehension, never on speech.
 function gradeLocked() {
@@ -1464,6 +1492,7 @@ function gradeLocked() {
 
 function resetSpeech() {
   ladder = null;
+  frontScore = null;
   cancelMic();
 }
 
@@ -1496,6 +1525,7 @@ async function scoreRecording(card) {
     const result = scoreWords(ref.p, hyp);
     result.words.forEach((x, i) => x.w = ref.w[i]);
     lastScore = { hash: fnv1a(card.es), words: result.words, overall: result.overall };
+    if (!ladderRep && !flipped) frontScore = { hash: lastScore.hash, overall: result.overall };
     if (!autoMic) { autoMic = true; localStorage.setItem("chuleta-automic", "1"); }
   } catch (e) {
     lastScore = { hash: fnv1a(card.es), error: true };
@@ -1520,6 +1550,7 @@ function filteredDeck() {
 
 function buildQueue() {
   rolloverNewLog();
+  relearn = {};
   const now = Date.now();
   const cards = filteredDeck();
   // Due = any card with saved state whose time has come. That includes lapsed
@@ -1567,8 +1598,12 @@ function nextDueInfo() {
 // ---- SM-2 grading, binary buttons ----
 // Correct: interval 1d → 6d → interval × ease (classic SM-2 steps); ease
 // recovers +0.05 per success (cap 2.5) so a rough start isn't a life sentence.
-// Wrong: lapse — ease drops 0.2 (floor 1.3), card resets and retries later
-// in this same session; clearing it then schedules it for tomorrow.
+// Wrong: lapse — ease drops 0.2 (floor 1.3), the card comes back within ~3
+// cards and must be answered correctly TWICE this session before it's
+// rescheduled (one lucky retry is not relearned). After a lapse the second
+// interval is 3 days, not 6 — struggled cards deserve a tighter leash.
+let relearn = {};   // id -> corrects still needed this session (not persisted)
+
 function grade(correct) {
   if (mode !== "study" || !queue.length || !flipped) return;
   if (gradeLocked()) return;
@@ -1576,19 +1611,26 @@ function grade(correct) {
   const isNew = !srs[id];
   const s = stateOf(id);
   if (correct) {
-    if (s.reps === 0) s.interval = 1;
-    else if (s.reps === 1) s.interval = 6;
-    else s.interval = Math.round(s.interval * s.ease);
-    s.ease = Math.min(2.5, Math.round((s.ease + 0.05) * 100) / 100);
-    s.reps += 1;
-    s.due = Date.now() + s.interval * DAY;
-    sessionDone += 1;
+    if (relearn[id] > 1) {
+      relearn[id] -= 1;
+      queue.splice(Math.min(8, queue.length), 0, id);
+    } else {
+      delete relearn[id];
+      if (s.reps === 0) s.interval = 1;
+      else if (s.reps === 1) s.interval = s.lapses > 0 ? 3 : 6;
+      else s.interval = Math.round(s.interval * s.ease);
+      s.ease = Math.min(2.5, Math.round((s.ease + 0.05) * 100) / 100);
+      s.reps += 1;
+      s.due = Date.now() + s.interval * DAY;
+      sessionDone += 1;
+    }
   } else {
     s.ease = Math.max(1.3, Math.round((s.ease - 0.2) * 100) / 100);
     s.reps = 0;
     s.interval = 0;
     s.lapses += 1;
-    queue.splice(Math.min(5, queue.length), 0, id);
+    relearn[id] = 2;
+    queue.splice(Math.min(3, queue.length), 0, id);
   }
   srs[id] = s;
   saveSrs();
@@ -1637,10 +1679,12 @@ function render() {
 
   if (mode === "study") {
     $("bar").style.width = sessionTotal ? (sessionDone / sessionTotal * 100) + "%" : "0%";
-    $("judge").classList.toggle("hidden", !card || !flipped);
+    $("judge").classList.toggle("hidden", !card);
     const locked = gradeLocked();
     $("correct").disabled = locked;
     $("wrong").disabled = locked;
+    $("correct").hidden = !flipped;
+    $("wrong").hidden = !flipped;
   } else {
     $("bar").style.width = "0%";
     $("judge").classList.add("hidden");
@@ -1697,10 +1741,12 @@ function render() {
   $("backLabel").textContent = activeDir === "es-en" ? "English" : "Español";
   $("frontHint").textContent = mode !== "study" ? "tap to flip"
     : earOnly ? "listen — say the translation out loud"
+    : (TOUCH && activeDir === "en-es") ? "hold to speak · tap to flip"
     : "say it out loud, then flip";
   $("backHint").textContent = mode !== "study" ? ""
     : gradeLocked() ? "🔒 one clean repeat unlocks grading — every word orange or better"
-    : "repeat it out loud · if you got it: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY);
+    : relearn[card.id] > 1 ? "relearning — correct " + relearn[card.id] + " more times this session"
+    : "repeat it out loud · if you got it: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? (s.lapses > 0 ? 3 : 6) : Math.round(s.interval * s.ease)) * DAY);
       // projected with pre-recovery ease; off by at most a day on long intervals
   $("sayFront").hidden = false;
   $("sayBack").hidden = false;
@@ -1763,9 +1809,51 @@ function setMode(m) {
   render();
 }
 
-$("card").addEventListener("click", flip);
+// Push-to-talk on touch screens: hold the card to record (EN→ES), release
+// to score. A short tap still flips. 250ms distinguishes hold from tap.
+const TOUCH = matchMedia("(hover: none) and (pointer: coarse)").matches;
+let holdTimer = null, holding = false, swallowTap = false;
+
+$("card").addEventListener("click", () => {
+  if (swallowTap) { swallowTap = false; return; }
+  flip();
+});
+$("card").addEventListener("pointerdown", e => {
+  if (e.pointerType !== "touch" || mode !== "study" || activeDir !== "en-es") return;
+  const card = currentCard();
+  if (!card || !repeatEligible(card) || micState !== "idle") return;
+  holdTimer = setTimeout(() => {
+    holding = true;
+    swallowTap = true;
+    getMicStream().catch(() => {});
+    startMic(card, false);
+  }, 250);
+});
+["pointerup", "pointercancel", "pointerleave"].forEach(ev =>
+  $("card").addEventListener(ev, () => {
+    clearTimeout(holdTimer);
+    if (holding && micState === "rec" && mediaRec) {
+      clearTimeout(micTimer);
+      mediaRec.stop();
+    }
+    holding = false;
+  }));
+$("card").addEventListener("contextmenu", e => { if (TOUCH) e.preventDefault(); });
 $("correct").addEventListener("click", () => grade(true));
 $("wrong").addEventListener("click", () => grade(false));
+
+// Skip: push the card to the back of today's queue, no grade, always allowed
+// (front or back, locked or not) — the escape hatch for any stuck moment.
+function skipCard() {
+  if (mode !== "study" || !queue.length) return;
+  queue.push(queue.shift());
+  flipped = false;
+  peeked = false;
+  resetSpeech();
+  rollDir();
+  render();
+}
+$("skip").addEventListener("click", skipCard);
 $("next").addEventListener("click", () => move(1));
 $("prev").addEventListener("click", () => move(-1));
 $("modeStudy").addEventListener("click", () => setMode("study"));
@@ -1862,9 +1950,10 @@ document.addEventListener("keydown", e => {
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
   else if (e.key === "1") grade(true);
   else if (e.key === "2") grade(false);
-  else if (e.key === "ArrowRight") move(1);
+  else if (e.key === "ArrowRight") { if (mode === "study") skipCard(); else move(1); }
   else if (e.key === "ArrowLeft") move(-1);
   else if (e.key === "s" && mode === "browse") $("shuffle").click();
+  else if (e.key === "s" && mode === "study") skipCard();
   else if (e.key === "e") {
     const c = currentCard();
     if (c) playClip(c, visibleLang());
