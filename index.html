@@ -1394,17 +1394,25 @@ function ladderPlayAndListen() {
   renderMic();
 }
 
-// The card is "cleared" only when a full-speed (1x) attempt has every word at
-// least orange (>= 0.55) — grading stays locked until then. Six full-speed
-// tries without clearing unlocks anyway so a bad mic can't trap a session.
+// One good repeat (every word at least orange, any speed) unlocks grading.
+// The ladder keeps climbing toward the trophy: a full-speed attempt that
+// passes overall ends it as "mastered". Six full-speed tries end it anyway
+// so a bad mic can't trap a session.
 function ladderAdvance(score) {
   if (!ladder || ladder.done) return;
   const okScore = score && !score.error;
+  const wasCleared = ladder.cleared;
+  if (okScore && score.words.every(w => w.score >= 0.55)) ladder.cleared = true;
   const atFull = ladder.step === LADDER_RATES.length - 1;
   if (atFull) {
     ladder.fullTries += 1;
-    if (okScore && score.words.every(w => w.score >= 0.55)) ladder.cleared = true;
-    if (ladder.cleared || ladder.fullTries >= 6) {
+    if (okScore && score.overall >= LADDER_PASS && ladder.cleared) {
+      ladder.mastered = true;
+      ladder.done = true;
+      render();
+      return;
+    }
+    if (ladder.fullTries >= 6) {
       ladder.done = true;
       render();
       return;
@@ -1416,14 +1424,15 @@ function ladderAdvance(score) {
     ladder.attempts += 1;
     if (ladder.attempts >= LADDER_TRIES) { ladder.step += 1; ladder.attempts = 0; }
   }
+  if (!wasCleared && ladder.cleared) render(); // unlock the grade buttons now
   ladderPlayAndListen();
 }
 
-// Grading is locked while a repeat ladder is unfinished on this card.
+// Grading is locked until one good repeat (or the ladder gives up).
 function gradeLocked() {
   const card = currentCard();
   if (!card || mode !== "study" || !flipped || !canRepeat(card)) return false;
-  return !(ladder && ladder.hash === fnv1a(card.es) && ladder.done);
+  return !(ladder && ladder.hash === fnv1a(card.es) && (ladder.cleared || ladder.done));
 }
 
 function resetSpeech() {
@@ -1646,8 +1655,9 @@ function render() {
   if (sc && !sc.error && activeDir === "en-es") {
     $("backText").innerHTML = scoredSpans(sc);
     $("backScore").textContent =
-      (ladder && ladder.hash === sc.hash && ladder.cleared ? "🏆 clean at full speed · "
-        : ladder && ladder.hash === sc.hash && ladder.done ? "↷ moving on, it'll come back · " : "") +
+      (ladder && ladder.hash === sc.hash && ladder.mastered ? "🏆 clean at full speed · "
+        : ladder && ladder.hash === sc.hash && ladder.done ? "↷ moving on, it'll come back · "
+        : ladder && ladder.hash === sc.hash && ladder.cleared ? "✓ good — grade when ready · " : "") +
       "pronunciation " + Math.round(sc.overall * 100) + "% · tap a word for detail";
   } else {
     $("backText").textContent = firstVariant(card, answerLang()).text;
@@ -1670,7 +1680,7 @@ function render() {
     : earOnly ? "listen — say the translation out loud"
     : "say it out loud, then flip";
   $("backHint").textContent = mode !== "study" ? ""
-    : gradeLocked() ? "🔒 repeat until every word is at least orange at 1× — then grade"
+    : gradeLocked() ? "🔒 one clean repeat unlocks grading — every word orange or better"
     : "repeat it out loud · if you got it: " + humanDelay((s.reps === 0 ? 1 : s.reps === 1 ? 6 : Math.round(s.interval * s.ease)) * DAY);
       // projected with pre-recovery ease; off by at most a day on long intervals
   $("sayFront").hidden = false;
